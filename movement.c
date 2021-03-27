@@ -273,7 +273,7 @@ void generate_movoptions_player(Game_state *state, Movoptions_player *player_opt
             // v Found a piece that the player /may/ be able to move
             if (piece_matches_player(piece, player))
             {  
-                // v at each iteration piece_options points to the Movoptions_piece inside the Movoptions_player array
+                // v at each iteration piece_options points to the current Movoptions_piece inside the Movoptions_player array
                 // TODO maybe encapsulate this stuff (into get_current_somethingidk) and also the pushing stuff 10 lines below
                 piece_options = &player_options->array[player_options->length];
                 Piece piece = get_piece(state, cur);
