@@ -182,7 +182,7 @@ void game_loop(Game_state *state)
         print(WHITE_WINS);
     else if (state->situation == BLACK_WINS)
         print(BLACK_WINS);
-    else  // situation == TIE -- FIXME this is unreachable, either delete it (also in the checkers.h enums) or make ties possible in the game
+    else  // situation == TIE
         print(TIE);
 }
 
