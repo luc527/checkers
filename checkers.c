@@ -19,7 +19,7 @@ void print(Message m)
 Movoptions_piece *prompt_source(Movoptions_player *options)
 {
     // Tell player when captures are available and must be performed
-    if (options->captures) {
+    if (options->type == CAPTURE) {
         print(MUST_CAPTURE_WITH);
         for (int i = 0; i < options->length; i++) {
             print_position(options->array[i].src);
@@ -99,7 +99,7 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
 
     prompt_destination(dest_options, dest);
 
-    return options.captures ? CAPTURE : REGULAR;
+    return options.type;
 }
 
 

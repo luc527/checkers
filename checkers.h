@@ -129,7 +129,7 @@ void generate_movoptions_piece(Game_state *, Position, Movoptions_piece *, bool 
 typedef struct {
     Movoptions_piece array[NUMPIECES];
     int length;
-    bool captures;
+    Movtype type;
 } Movoptions_player;
 
 void generate_movoptions_player(Game_state *, Movoptions_player *);

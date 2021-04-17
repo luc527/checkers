@@ -247,7 +247,7 @@ void generate_movoptions_piece(Game_state *state, Position src,
 void generate_movoptions_player(Game_state *state, Movoptions_player *player_options)
 {   //{{{
     player_options->length = 0;
-    player_options->captures = false;
+    player_options->type = REGULAR;
     Color player = state->current_player;
 
     // Generate all movement options for the player.
@@ -276,7 +276,6 @@ void generate_movoptions_player(Game_state *state, Movoptions_player *player_opt
                 // v at each iteration piece_options points to the current Movoptions_piece inside the Movoptions_player array
                 // TODO maybe encapsulate this stuff (into get_current_somethingidk) and also the pushing stuff 10 lines below
                 piece_options = &player_options->array[player_options->length];
-                Piece piece = get_piece(state, cur);
 
                 generate_movoptions_piece(state, cur, piece_options, false);
                 // v This piece /can/, in fact, be moved (there are movement options for it)
@@ -287,7 +286,7 @@ void generate_movoptions_player(Game_state *state, Movoptions_player *player_opt
                     if (piece_options->captures)
                     {
                         can_capture = true;
-                        player_options->captures = true;
+                        player_options->type = CAPTURE;
                         goto end_capture_search;
                     }
                 }
