@@ -131,7 +131,7 @@ void game_loop(Game_state *state)
             Movoptions_piece options;
             generate_movoptions_piece(state, movdest, &options, true);
 
-            if (options.captures)  // Can perform a sequential capture
+            if (options.type == CAPTURE)  // Can perform a sequential capture
             {
                 // Destination from previous move is source for sequential move
                 movsrc = movdest;
