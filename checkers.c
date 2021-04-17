@@ -89,6 +89,30 @@ void prompt_destination(Movoptions_piece *options, Position *dest)
  */
 Movtype get_movement(Game_state *state, Position *src, Position *dest)
 {
+
+    // TODO cleaning up get_movement like this actually changed the 
+    // control flow.  Before it, if the player gave an invalid destination
+    // the game would prompt again from the start -- would ask for
+    // another source again, then another destination, and so on.
+    // Now when the player gives an invalid destination
+    // the game just asks for another destination.  That is,
+    // the player is stuck with the source he gave before.
+    //
+    // This doesn't call for going back to the previous get_movement
+    // implementation, but it calls for a better way for the user to
+    // interact with the game.  In fact, the previous implementation
+    // was alredy bad -- it required the player to input an invalid position
+    // if he wanted to change the source.  Furthermore, there are other
+    // problems to be solved related to the same issue: there's no way for the
+    // player to restart the game, or to declare a tie, etc. (and now to
+    // change what movement he wants to do).
+    //
+    // So the next step is to completely reestructure the user interaction
+    // (pretty much everything in the checkers.c file), which includes using
+    // ncurses (so unfortunately it won't run on windows anymore) so the player has a
+    // cursor to move around the board to choose pieces and perform movements
+    // and does not need to type in positions.
+
     Movoptions_player options;
     generate_movoptions_player(state, &options);
 
