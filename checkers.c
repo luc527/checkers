@@ -1,7 +1,15 @@
 #include <stdio.h>
-
+#include <string.h>
 #include "checkers.h"
 
+// Language used in printing the messages
+Language language = EN;
+
+// Shortcut for printing the messages in the preferred language
+void print(Message m)
+{
+    printmsg(m, language);
+}
 
 /* get_movement(state, *src, *dest)
  * stores a valid movement (source and destination positions) from the player in src and dest,
@@ -28,10 +36,10 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
     // Tell the player when he has some capture available to do and must perform it
     if (options.captures)
     {
-        printf("You must capture with one of the following: ");
+        print(MUST_CAPTURE_WITH);
         for (int i = 0; i < options.length; i++)
             print_position(options.array[i].src);
-        printf("\n");
+        putchar('\n');
     }
 
     // Ask player for movement until he provides a valid one
@@ -40,7 +48,7 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
         //
         // Get movement source (position of the piece to be moved) and validate it
         //
-        printf("> Source: ");
+        print(SOURCE_PROMPT);
         read_position(src);
         int src_index = -1;  // -1 indicates the given position was not found in the pre-computed options
         for (int i=0; i<options.length; i++)
@@ -55,7 +63,7 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
 
         if (src_index == -1)
         {
-            printf("That is not an option. Try again.\n");
+            print(NOT_AN_OPTION);
             // don't change valid_move to repeat the loop and ask the player again
         }
         else
@@ -64,7 +72,7 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
             // Get movement destination
             //
             Movoptions_piece *piece_options = &options.array[src_index];
-            printf("> Destination: ");
+            print(DESTINATION_PROMPT);
             read_position(dest);
 
             bool dest_is_an_option = false;
@@ -76,9 +84,9 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
             }
 
             if (!dest_is_an_option) {
-                printf("That is not an option. Try again.\n");
+                print(NOT_AN_OPTION);
             } else {
-                printf("\n");
+                putchar('\n');
                 valid_move = true;
             }
         }
@@ -96,16 +104,16 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
 void get_sequential_capture(Game_state *state, Position *src, Position *dest,
                             Movoptions_piece *options)
 {
-    printf("You must perform a sequential capture from ");
+    print(MUST_PERFORM_SEQUENTIAL_CAPTURE);
     print_position(*src);
-    printf("\n");
+    putchar('\n');
 
     bool valid_move = false;
     do {
         //
         // Get movement destination
         //
-        printf("> Destination: ");
+        print(DESTINATION_PROMPT);
         read_position(dest);
 
         bool dest_is_an_option = false;
@@ -117,9 +125,9 @@ void get_sequential_capture(Game_state *state, Position *src, Position *dest,
         }
 
         if (!dest_is_an_option) {
-            printf("That is not an option. Try again.\n");
+            print(NOT_AN_OPTION);
         } else {
-            printf("\n");
+            putchar('\n');
             valid_move = true;
         }
 
@@ -169,16 +177,25 @@ void game_loop(Game_state *state)
     } while (state->situation == ONGOING);
 
     if (state->situation == WHITE_WINS)
-        printf("White wins!\n");
+        print(WHITE_WINS);
     else if (state->situation == BLACK_WINS)
-        printf("Black wins!\n");
+        print(BLACK_WINS);
     else  // situation == TIE -- FIXME this is unreachable, either delete it (also in the checkers.h enums) or make ties possible in the game
-        printf("It's a tie.\n");
+        print(TIE);
 }
 
 
-int main()
+
+int main(int argc, char **argv)
 {
+    for (int i = 1; i < argc; i++) {
+        if (strcmp("--pt", argv[i]) == 0) {
+            language = PT;
+        }
+    }
+
+    init_messages_array();
+
     Game_state state;
     game_setup(&state);
     game_loop(&state);

@@ -4,8 +4,27 @@
 #include <stdbool.h>
 
 // Languages {{{
-// TODO
-// typedef enum { PT_BR, EN } Languages;
+typedef enum { PT, EN } Language;
+#define NLANGS 2
+
+typedef enum {
+    SOURCE_PROMPT,
+    DESTINATION_PROMPT,
+    NOT_AN_OPTION,
+    MUST_CAPTURE_WITH,
+    MUST_PERFORM_SEQUENTIAL_CAPTURE,
+    WHITE_WINS_MSG,  // <-- needs _MSG because the versions without it are alredy defined
+    BLACK_WINS_MSG,
+    TIE_MSG,
+    CURRENT_PLAYER,
+    WHITE_PLAYER,
+    BLACK_PLAYER
+} Message;
+#define NMESSAGES 11
+
+void init_messages_array(void);
+
+void printmsg(Message, Language);
 // }}}
 
 // Simple typedefs {{{

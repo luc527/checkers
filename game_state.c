@@ -1,5 +1,4 @@
 #include <stdio.h>
-
 #include "checkers.h"
 
 Piece get_piece(Game_state *state, Position pos)
@@ -179,9 +178,12 @@ void game_print(Game_state *state)
         printf("%c ", 'A' + col);
     printf("\n");
 
-    printf("Current player: ");
-    if (state->current_player == WHITE) printf("white (o@)\n");
-    else                                printf("black (*X)\n");
+    // from checkers.c
+    void print(Message);
+
+    print(CURRENT_PLAYER);
+    if (state->current_player == WHITE) print(WHITE_PLAYER);
+    else                                print(BLACK_PLAYER);
     printf("\n");
 }
 

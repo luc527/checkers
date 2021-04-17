@@ -1,1 +1,1 @@
-gcc -o checkers checkers.c movement.c game_state.c util.c checkers.h
+gcc -o checkers checkers.c movement.c game_state.c util.c language.c checkers.h

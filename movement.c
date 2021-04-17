@@ -2,7 +2,6 @@
 #include "checkers.h"
 
 
-
 /**
  * get_movtype: takes in a game state and a movement (source and destination),
  * and returns whether the movement is INVALID (cannot be performed),
@@ -18,13 +17,13 @@ Movtype get_movtype(Game_state *state, Position src, Position dest)
     if (!valid_positions)
         return INVALID;
 
-    Piece src_piece  = get_piece(state, src);
-    Piece dest_piece = get_piece(state, dest);
-    if (is_empty(src_piece) || !is_empty(dest_piece))
+    Piece atsrc  = get_piece(state, src);
+    Piece atdest = get_piece(state, dest);
+    if (is_empty(atsrc) || !is_empty(atdest))
         return INVALID;
 
     Color player = state->current_player;
-    if (!piece_matches_player(src_piece, player))
+    if (!piece_matches_player(atsrc, player))
         return INVALID;
 
     int distance = abs(dest.row - src.row);
@@ -40,13 +39,13 @@ Movtype get_movtype(Game_state *state, Position src, Position dest)
     //
     // Stone-specific movement validation
     //
-    if (is_stone(src_piece))
+    if (is_stone(atsrc))
     {   // {{{
         if (distance == 1)
         {
             // White stones can only move up, blacks only down
-            bool can_move = (src_piece == WHITE_STONE && vdir ==  1)
-                         || (src_piece == BLACK_STONE && vdir == -1);
+            bool can_move = (atsrc == WHITE_STONE && vdir ==  1)
+                         || (atsrc == BLACK_STONE && vdir == -1);
             return can_move ? REGULAR : INVALID;
         }
         else if (distance == 2)
@@ -55,7 +54,7 @@ Movtype get_movtype(Game_state *state, Position src, Position dest)
             Position mid = { src.row + vdir, src.col + hdir };
             int mid_piece = get_piece(state, mid);
             bool can_capture = (mid_piece != EMPTY)
-                            && (!same_color(src_piece, mid_piece));
+                            && (!same_color(atsrc, mid_piece));
             return can_capture ? CAPTURE : INVALID;
         }
         else
@@ -85,7 +84,7 @@ Movtype get_movtype(Game_state *state, Position src, Position dest)
                 {
                     // Can't move over pieces of the same color (type is INVALID);
                     // capture when moving over pieces of different color (type is CAPTURE).
-                    if (same_color(src_piece, mid_piece)) {
+                    if (same_color(atsrc, mid_piece)) {
                         type = INVALID;
                         break;
                     } else {
@@ -132,7 +131,7 @@ void generate_movoptions_piece(Game_state *state, Position src,
     options->src      = src;
     options->captures = false;
 
-    Piece src_piece  = get_piece(state, src);
+    Piece atsrc  = get_piece(state, src);
     int directions[] = { -1, 1 };
 
     // We iterate through all possible directions a piece can go doing
@@ -140,14 +139,14 @@ void generate_movoptions_piece(Game_state *state, Position src,
     //   for (j=0..2) hdir = directions[j]
     //     ...
 
-    if (is_empty(src_piece))
+    if (is_empty(atsrc))
     {
         return;
     }
     //
     // Stone movement generation
     //
-    else if (is_stone(src_piece))
+    else if (is_stone(atsrc))
     {   // {{{
         // First check for captures (in all squares with distance 2),
         // and set a bool telling whether a capture is an option
@@ -171,7 +170,7 @@ void generate_movoptions_piece(Game_state *state, Position src,
         // as options under this condition)
         if (!only_captures && !options->captures)
         {
-            int vdir = is_white(src_piece) ? 1 : -1;
+            int vdir = is_white(atsrc) ? 1 : -1;
             for (int i=0; i<2; i++)
             {
                 int hdir = directions[i];
