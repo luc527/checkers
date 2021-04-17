@@ -15,7 +15,7 @@ static void init_pt()
     messages[PT][TIE_MSG] = "Empate.\n";
     messages[PT][CURRENT_PLAYER] = "Jogador atual: ";
     messages[PT][WHITE_PLAYER] = "branco (o@)\n";
-    messages[PT][TIE_MSG] = "preto (*X)\n";
+    messages[PT][BLACK_PLAYER] = "preto (*X)\n";
 }
 
 static void init_en()
@@ -26,11 +26,11 @@ static void init_en()
     messages[EN][MUST_CAPTURE_WITH] = "You must capture with one of the following: ";
     messages[EN][MUST_PERFORM_SEQUENTIAL_CAPTURE] = "You must perform a sequential capture from: ";
     messages[EN][WHITE_WINS_MSG] = "White wins!\n";
-    messages[EN][BLACK_WINS] = "Black wins!\n";
+    messages[EN][BLACK_WINS_MSG] = "Black wins!\n";
     messages[EN][TIE_MSG] = "It's a tie.\n";
     messages[EN][CURRENT_PLAYER] = "Current player: ";
     messages[EN][WHITE_PLAYER] = "white (o@)\n";
-    messages[EN][TIE_MSG] = "black (*X)\n";
+    messages[EN][BLACK_PLAYER] = "black (*X)\n";
 }
 
 void init_messages_array()

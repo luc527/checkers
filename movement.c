@@ -247,6 +247,7 @@ void generate_movoptions_piece(Game_state *state, Position src,
 void generate_movoptions_player(Game_state *state, Movoptions_player *player_options)
 {   //{{{
     player_options->length = 0;
+    player_options->captures = false;
     Color player = state->current_player;
 
     // Generate all movement options for the player.
