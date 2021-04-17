@@ -103,16 +103,16 @@ Movtype get_movtype (Game_state *, Position from, Position to);
 // destination options for a piece at position 'src'.
 // It can have an arbitrary (within [0..MAXOPTIONS]) number of
 // options, so we implement a variable-length array (with a limit of
-// MAXOPTIONS elements) // with a regular array and a 'length' component.
-// The bool component captures tells whether the options are captures or not.
-// Remember that captures are mandatory, so a Movoptions_piece will either
-// have all options as regular moves (.captures=false) or all options
-// as captures (.captures=true).
+// MAXOPTIONS elements) with a regular array and a 'length' component.
+// The Movtype component type tells whether the options are all regular
+// movements (so type = REGULAR) or all captures (type = CAPTURE).
+// It cannot have regular and capture movements at the same time,
+// since it's required that if captures are available they must be made.
 typedef struct {
     Position src;
     Position array[MAXOPTIONS];
     int length;
-    bool captures;
+    Movtype type;
 } Movoptions_piece;
 
 void generate_movoptions_piece(Game_state *, Position, Movoptions_piece *, bool only_captures);
@@ -123,7 +123,7 @@ void generate_movoptions_piece(Game_state *, Position, Movoptions_piece *, bool 
 // a player has. That is, it lists all the Movoptions_piece for each piece.
 // Again a variable-length array with an upper-bound (NUMPIECES) is
 // implemented with a regular array and a 'length' component; and again
-// the bool component captures tells whether the movements are all captures
+// the Movtype component type tells whether the movements are all captures
 // (since when there are captures no regular moves can be made) or all
 // regular moves.
 typedef struct {

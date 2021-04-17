@@ -127,9 +127,9 @@ static void push_piece_option(Movoptions_piece *m, Position p)
 void generate_movoptions_piece(Game_state *state, Position src,
                                Movoptions_piece *options, bool only_captures)
 {   //{{{
-    options->length   = 0;
-    options->src      = src;
-    options->captures = false;
+    options->length = 0;
+    options->src    = src;
+    options->type   = REGULAR;
 
     Piece atsrc  = get_piece(state, src);
     int directions[] = { -1, 1 };
@@ -160,7 +160,7 @@ void generate_movoptions_piece(Game_state *state, Position src,
                 Movtype type = get_movtype(state, src, dest);
                 if (type == CAPTURE)
                 {
-                    options->captures = true;
+                    options->type = CAPTURE;
                     push_piece_option(options, dest);
                 }
             }
@@ -168,7 +168,7 @@ void generate_movoptions_piece(Game_state *state, Position src,
         // Now check for regular moves only if no captures were available
         // (because captures are mandatory -- we can only push regular movements
         // as options under this condition)
-        if (!only_captures && !options->captures)
+        if (!only_captures && options->type == REGULAR)
         {
             int vdir = is_white(atsrc) ? 1 : -1;
             for (int i=0; i<2; i++)
@@ -201,7 +201,7 @@ void generate_movoptions_piece(Game_state *state, Position src,
                     Movtype type = get_movtype(state, src, dest);
                     if (type == CAPTURE)
                     {
-                        options->captures = true;
+                        options->type = CAPTURE;
                         push_piece_option(options, dest);
                     }
                 }
@@ -210,7 +210,7 @@ void generate_movoptions_piece(Game_state *state, Position src,
         // Now check for regular moves only if no captures were available
         // (because captures are mandatory, so we can only push regular movements
         // as options under this condition)
-        if (!only_captures && !options->captures)
+        if (!only_captures && options->type == REGULAR)
         {
             for (int i=0; i<2; i++)
             {
@@ -283,7 +283,7 @@ void generate_movoptions_player(Game_state *state, Movoptions_player *player_opt
                 {  
                     // Push the movement options for this piece onto the Movoptions_player array
                     player_options->length++;
-                    if (piece_options->captures)
+                    if (piece_options->type == CAPTURE)
                     {
                         can_capture = true;
                         player_options->type = CAPTURE;
@@ -311,7 +311,7 @@ end_capture_search:
                 if (piece_matches_player(piece, player))
                 {
                     generate_movoptions_piece(state, cur, piece_options, true);
-                    if (piece_options->captures)
+                    if (piece_options->type == CAPTURE)
                         player_options->length++;
                 }
             }
