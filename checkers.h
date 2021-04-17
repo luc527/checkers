@@ -135,5 +135,12 @@ typedef struct {
 void generate_movoptions_player(Game_state *, Movoptions_player *);
 // }}}
 
+// interface.c {{{
+void init_interface(void);
+void refresh_interface(void);
+void close_interface(void);
+void prompt(char *);
+// }}}
+
 #endif
 
