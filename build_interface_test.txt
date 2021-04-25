@@ -1,0 +1,1 @@
+gcc -o intest interface.c util.c checkers.h -lncurses

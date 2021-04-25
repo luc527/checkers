@@ -59,6 +59,7 @@ bool same_color           (Piece, Piece);
 bool piece_matches_player (Piece, Color);
 
 int abs(int);
+int clamp(int, int min, int max);
 // }}}
 
 // game_state.c {{{

@@ -9,6 +9,16 @@ int abs(int x)
     return x < 0 ? -x : x;
 }
 
+
+// Clamps x between min <= x <= max
+int clamp(int x, int min, int max)
+{
+	/**/ if (x < min) return min;
+	else if (x > max) return max;
+	else              return x;
+}
+
+
 //
 // Position reading and writing
 //
@@ -62,7 +72,7 @@ bool is_valid_position(Position p)
       && p.col >= 0 && p.col < 8; }
 
 bool is_diagonal(Position src, Position dest)
-{ return abs(src.row - dest.row) == abs(src.col - dest.col); };
+{ return abs(src.row - dest.row) == abs(src.col - dest.col); }
 
 bool is_white(Piece piece)
 { return piece == WHITE_STONE || piece == WHITE_DAME; }
