@@ -187,7 +187,7 @@ void game_loop(Game_state *state)
 }
 
 
-/*
+
 int main(int argc, char **argv)
 {
     for (int i = 1; i < argc; i++) {
@@ -202,18 +202,5 @@ int main(int argc, char **argv)
     game_setup(&state);
     game_loop(&state);
     return 0;
-}
-*/
-
-int main(int argc, char **argv)
-{
-	init_interface();
-	refresh_interface();
-
-	void prompt_test(void);
-	prompt_test();
-
-	close_interface();
-	return 0;
 }
 
