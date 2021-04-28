@@ -41,18 +41,25 @@ typedef struct {
 Board_space bspace;
 
 
+/* bspace_reset just clears the board space movement information
+ * but doesn't do anything with the window.
+ */
+void bspace_reset()
+{
+	bspace.srcy = bspace.srcx = 0;
+	bspace.desty = bspace.destx = 0;
+	bspace.playery = bspace.playerx = 0;
+	bspace.chose_src = false;
+	bspace.chose_dest = false;
+}
+
 // bspace_init is like the constructor.
 void bspace_init()
 {
 	// For now it'll occupy the whole screen
 	// Change when actually adding other things to the interface
 	bspace.win = newwin(0, 0, 0, 0);
-	bspace.srcy = bspace.srcx = 0;
-	bspace.desty = bspace.destx = 0;
-	bspace.playery = bspace.playerx = 0;
-	bspace.chose_src = false;
-	bspace.chose_dest = false;
-	wmove(bspace.win, 0, 0);
+	bspace_reset();
 }
 
 // what if the terminal isn't large enough to display the whole board?
@@ -78,10 +85,10 @@ void bspace_show()
 			chtype ch;
 			// TODO do some combination of blinking and reversing the color instaed 
 			// to indicate where the source and destination are
-			if (bspace.chose_src && row == bspace.srcy && col == bspace.srcx)
-				ch = 's';
-			else if (bspace.chose_dest && row == bspace.desty && col == bspace.destx)
+			if (bspace.chose_dest && row == bspace.desty && col == bspace.destx)
 				ch = 'd';
+			else if (bspace.chose_src && row == bspace.srcy && col == bspace.srcx)
+				ch = 's';
 			else
 				ch = ' ';
 			waddch(bspace.win, '|');
@@ -182,35 +189,70 @@ void refresh_interface()
 }
 
 
-int test_interface()
+void get_movement_interactively(Position *src, Position *dest) 
 {
-	refresh_interface(), getch();
+	bspace.playery = bspace.playerx = 0;
+	// TODO remember previous position instead
 
-	// TODO better environment for debugging the interface
-	// and understand what's happening
+	bspace_reset();
+	refresh_interface();
 
-	// TODO test edge cases -- moving out of bounds,
-	// selecting dest without having selected src,
-	// or selecting twice etc.
-	bspace_move(1, 1), refresh_interface(), getch();
-	bspace_move(1, 1), refresh_interface(), getch();
-	bspace_select_src(), refresh_interface(), getch();
-	bspace_move(1, 1), refresh_interface(), getch();
-	bspace_move(1, 1), refresh_interface(), getch();
-	bspace_select_dest(), refresh_interface(), getch();
-	bspace_move(1, 1), refresh_interface(), getch();
-	bspace_move(1, 1), refresh_interface(), getch();
-	bspace_cancel_movement(), refresh_interface(), getch();
-	bspace_move(1, 1), refresh_interface(), getch(); // At the end
-	bspace_move(1, 1), refresh_interface(), getch(); // Should not move
+	// TODO write somewhere what keys the player has to press
+	// and what they do (e.g. press wasd to move around, m to
+	// mark the current position as source or destination,
+	// u to undo the movement and ENTER when you're done)
+	while (true) {
+		chtype ch = wgetch(bspace.win);
+		int yoffset = 0, xoffset = 0;
+		switch (ch) {
+		case 10:  // Enter
+			if (bspace.chose_src && bspace.chose_dest)
+				goto done;  // break wouldn't break the loop, but the case
+			// TODO else: print that the player has to perform a movement
+			break;
+		case 'u':
+			bspace_cancel_movement();
+			break;
+		case 'm':
+			if (!bspace.chose_src)
+				bspace_select_src();
+			else if (!bspace.chose_dest)
+				bspace_select_dest();
+			// TODO else: status message with error (you must cancel the
+			// movement or press ENTER at this point)
+			break;
+		case 'w': yoffset = -1; break;
+		case 's': yoffset =  1; break;
+		case 'd': xoffset =  1; break;
+		case 'a': xoffset = -1; break;
+		}
+		bspace_move(yoffset, xoffset);
+		refresh_interface();
+	}
+done:
+	src->row = bspace.srcy;
+	src->col = bspace.srcx;
+	dest->row = bspace.desty;
+	dest->col = bspace.destx;
 }
 
 
 int main()
 {
 	init_interface();
-	mvprintw(LINES-2, 2, "test");
-	test_interface();
+
+	Position src, dest;
+	get_movement_interactively(&src, &dest);
+
 	close_interface();
+
+	// Some post-processing of the coordinates might have to be done
+	// so that they match the actual positions in the board, but I'm
+	// not sure yet.
+	printf("(x,y) from 0 to 7\n");
+	printf("Source: (%d,%d)\n", src.row, src.col);
+	printf("Destination: (%d,%d)\n", dest.row, dest.col);
+
+	return 0;
 }
 
