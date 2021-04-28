@@ -19,7 +19,7 @@
  *   chose_dest to true.
  *   (bspace_select_dest implements this)
  * > Throughout the process, the player's current y and x coordinates are
- * stored in playery and playerx.
+ *   stored in playery and playerx.
  */
 typedef struct {
 	WINDOW *win;
