@@ -62,6 +62,26 @@ void bspace_init()
 	bspace_reset();
 }
 
+/* We use the isblacksquare bool array
+ * to check when to display a black square on the board.
+ * [There *is* a pattern and we *could* find out which positions are
+ * black dynamically (something like first line starts with black,
+ * then each following square is the inverse of the previous,
+ * then each line is the inverse of the previous line etc.),
+ * but it's just a lot nicer to write "if (isblacksquare[row][col]) ...",
+ * and not really costly.]
+ */
+bool isblacksquare[8][8] = {
+	{ true, false, true, false, true, false, true, false },
+	{ false, true, false, true, false, true, false, true },
+	{ true, false, true, false, true, false, true, false },
+	{ false, true, false, true, false, true, false, true },
+	{ true, false, true, false, true, false, true, false },
+	{ false, true, false, true, false, true, false, true },
+	{ true, false, true, false, true, false, true, false },
+	{ false, true, false, true, false, true, false, true },
+};
+
 // what if the terminal isn't large enough to display the whole board?
 // TODO do something to handle this situation
 
@@ -74,31 +94,43 @@ void bspace_show()
 	// otherwise it'll show the updated board below the previous one
 	wmove(bspace.win, 0, 0);
 
-	for (int row = 0; row < 8; row++) {
-		// Row separator
+	for (int row = 7; row >= 0; row--) {
+		// Row separator:
 		waddch(bspace.win, '+');
 		for (int col = 0; col < 8; col++)
 			waddstr(bspace.win, "---+");
 		waddch(bspace.win, '\n');
 
 		for (int col = 0; col < 8; col++) {
-			chtype ch;
-			// TODO do some combination of blinking and reversing the color instaed 
-			// to indicate where the source and destination are
-			if (bspace.chose_dest && row == bspace.desty && col == bspace.destx)
-				ch = 'd';
-			else if (bspace.chose_src && row == bspace.srcy && col == bspace.srcx)
-				ch = 's';
-			else
-				ch = ' ';
 			waddch(bspace.win, '|');
-			if (row == bspace.playery && col == bspace.playerx)
-				wattron(bspace.win, A_REVERSE);
-			waddch(bspace.win, ' ');
-			waddch(bspace.win, ch);
-			waddch(bspace.win, ' ');
 
-			wattroff(bspace.win, A_REVERSE);
+			// Padding around the piece
+			// Also indicates current position and chosen src and dest positions
+			chtype left  = ' ';
+			chtype right = ' ';
+
+			if (bspace.chose_dest && row==bspace.desty && col==bspace.destx) {
+				wattron(bspace.win, A_BLINK);
+				left = '>';
+			} else if (bspace.chose_src && row==bspace.srcy && col==bspace.srcx) {
+				wattron(bspace.win, A_BLINK);
+				left = '<';
+			}
+
+			if (isblacksquare[row][col])
+				wattron(bspace.win, A_REVERSE);
+
+			if (row == bspace.playery && col == bspace.playerx) {
+				left  = '[';
+				right = ']';
+			}
+
+			waddch(bspace.win, left);
+			waddch(bspace.win, ' '); // <- Here's where the pieces will be printed
+			waddch(bspace.win, right);
+
+			// Turn off all attributes that might have been turned on
+			wattroff(bspace.win, A_BLINK | A_UNDERLINE | A_REVERSE);
 		}
 		waddch(bspace.win, '|');
 		waddch(bspace.win, '\n');
@@ -179,10 +211,11 @@ void close_interface()
 
 void refresh_interface()
 {
-	// This is *the correct order* in which to call these functions.
-	// Under other orders when refresh_interface is called for
-	// the first time we don't see the board yet, and it has
-	// to be called again for it to actually be shown.
+	/* This is *the correct order* in which to call these functions.
+	 * Under other orders when refresh_interface is called for
+	 * the first time we don't see the board yet, and it has
+	 * to be called again for it to actually be shown.
+	 */
 	bspace_show();
 	refresh();
 	wrefresh(bspace.win);
@@ -212,6 +245,10 @@ void get_movement_interactively(Position *src, Position *dest)
 			break;
 		case 'u':
 			bspace_cancel_movement();
+			// TODO make undo just cancel the last action:
+			// if player has chosen source and destination,
+			// pressing u once just undoes the destination,
+			// and pressing it once more undoes the whole movement
 			break;
 		case 'm':
 			if (!bspace.chose_src)
@@ -221,8 +258,8 @@ void get_movement_interactively(Position *src, Position *dest)
 			// TODO else: status message with error (you must cancel the
 			// movement or press ENTER at this point)
 			break;
-		case 'w': yoffset = -1; break;
-		case 's': yoffset =  1; break;
+		case 'w': yoffset =  1; break;
+		case 's': yoffset = -1; break;
 		case 'd': xoffset =  1; break;
 		case 'a': xoffset = -1; break;
 		}
@@ -250,8 +287,8 @@ int main()
 	// so that they match the actual positions in the board, but I'm
 	// not sure yet.
 	printf("(x,y) from 0 to 7\n");
-	printf("Source: (%d,%d)\n", src.row, src.col);
-	printf("Destination: (%d,%d)\n", dest.row, dest.col);
+	printf("Source: (%d,%d)\n", src.col, src.row);
+	printf("Destination: (%d,%d)\n", dest.col, dest.row);
 
 	return 0;
 }
