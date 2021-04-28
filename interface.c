@@ -18,9 +18,12 @@
  *   thereby storing it in desty and destx and seting
  *   chose_dest to true.
  *   (bspace_select_dest implements this)
+ * > Throughout the process, the player's current y and x coordinates are
+ * stored in playery and playerx.
  */
 typedef struct {
-	WINDOW *window;
+	WINDOW *win;
+	int playery, playerx;
 	int srcy,    srcx;
 	int desty,   destx;
 	bool chose_src;
@@ -41,46 +44,62 @@ Board_space bspace;
 // bspace_init is like the constructor.
 void bspace_init()
 {
-	bspace.window = newwin(8, 8, 1, 1);
+	// For now it'll occupy the whole screen
+	// Change when actually adding other things to the interface
+	bspace.win = newwin(0, 0, 0, 0);
 	bspace.srcy = bspace.srcx = 0;
 	bspace.desty = bspace.destx = 0;
-	bspace.chose_src = bspace.chose_dest = false;
-	wmove(bspace.window, 0, 0);
+	bspace.playery = bspace.playerx = 0;
+	bspace.chose_src = false;
+	bspace.chose_dest = false;
+	wmove(bspace.win, 0, 0);
 }
+
+// what if the terminal isn't large enough to display the whole board?
+// TODO do something to handle this situation
 
 /* bspace_show() loads the visual representation of the board
  * space into its window.
  */
 void bspace_show()
 {
-	// Showing the board will move the cursor
-	// around, but the cursor is where the player
-	// is at and we don't want to change that.
-	// So here we save the current y and x positions
-	// and restore them later, preserving the player positions.
+	// Move to the start of the window,
+	// otherwise it'll show the updated board below the previous one
+	wmove(bspace.win, 0, 0);
 
-	// Save player position
-	int playery, playerx;
-	getyx(bspace.window, playery, playerx);
+	for (int row = 0; row < 8; row++) {
+		// Row separator
+		waddch(bspace.win, '+');
+		for (int col = 0; col < 8; col++)
+			waddstr(bspace.win, "---+");
+		waddch(bspace.win, '\n');
 
-	// Erase previous state
-	for (int y = 0; y < 8; y++) {
-		for (int x = 0; x < 8; x++) {
-			mvwaddch(bspace.window, y, x, ' ');
+		for (int col = 0; col < 8; col++) {
+			chtype ch;
+			// TODO do some combination of blinking and reversing the color instaed 
+			// to indicate where the source and destination are
+			if (bspace.chose_src && row == bspace.srcy && col == bspace.srcx)
+				ch = 's';
+			else if (bspace.chose_dest && row == bspace.desty && col == bspace.destx)
+				ch = 'd';
+			else
+				ch = ' ';
+			waddch(bspace.win, '|');
+			if (row == bspace.playery && col == bspace.playerx)
+				wattron(bspace.win, A_REVERSE);
+			waddch(bspace.win, ' ');
+			waddch(bspace.win, ch);
+			waddch(bspace.win, ' ');
+
+			wattroff(bspace.win, A_REVERSE);
 		}
+		waddch(bspace.win, '|');
+		waddch(bspace.win, '\n');
 	}
-	box(bspace.window, 0, 0);
-	// Print new state (just indicates current player position and src and dest)
-	if (bspace.chose_src) {
-		mvwaddch(bspace.window, bspace.srcy, bspace.srcx, 's');
-		if (bspace.chose_dest) {
-			mvwaddch(bspace.window, bspace.desty, bspace.destx, 'd');
-		}
-	}
-	mvwchgat(bspace.window, playery, playerx, 1, A_REVERSE, 0, NULL);
-
-	// Restore player position
-	wmove(bspace.window, playery, playerx);
+	waddch(bspace.win, '+');
+	for (int col = 0; col < 8; col++)
+		waddstr(bspace.win, "---+");
+	waddch(bspace.win, '\n');
 }
 
 /* bspace_move is called to move the player's position in the
@@ -90,16 +109,11 @@ void bspace_show()
  */
 void bspace_move(int yoffset, int xoffset)
 {
-	int cury, curx;
-	getyx(bspace.window, cury, curx);
+	int newy = clamp(bspace.playery + yoffset, 0, 7);
+	int newx = clamp(bspace.playerx + xoffset, 0, 7);
 
-	int height, width;
-	getmaxyx(bspace.window, height, width);
-
-	int newy = clamp(cury + yoffset, 0, height-1);
-	int newx = clamp(curx + xoffset, 0, width-1);
-
-	wmove(bspace.window, newy, newx);
+	bspace.playery = newy;
+	bspace.playerx = newx;
 }
 
 /* bspace_select_src() is called to mark the player's current position
@@ -111,12 +125,8 @@ void bspace_move(int yoffset, int xoffset)
 void bspace_select_src()
 {
 	if (!bspace.chose_dest && !bspace.chose_src) {
-		int y, x;
-		getyx(bspace.window, y, x);
-
-		bspace.srcy = y;
-		bspace.srcx = x;
-
+		bspace.srcy = bspace.playery;
+		bspace.srcx = bspace.playerx ;
 		bspace.chose_src = true;
 	}
 }
@@ -130,12 +140,8 @@ void bspace_select_src()
 void bspace_select_dest()
 {
 	if (bspace.chose_src && !bspace.chose_dest) {
-		int y, x;
-		getyx(bspace.window, y, x);
-
-		bspace.desty = y;
-		bspace.destx = x;
-
+		bspace.desty = bspace.playery;
+		bspace.destx = bspace.playerx;
 		bspace.chose_dest = true;
 	}
 }
@@ -154,27 +160,31 @@ void init_interface()
 	initscr();
 	cbreak();
 	noecho();
+	curs_set(0);
 	bspace_init();
 }
 
 void close_interface()
 {
-	delwin(bspace.window);
+	delwin(bspace.win);
 	endwin();
 }
 
 void refresh_interface()
 {
+	// This is *the correct order* in which to call these functions.
+	// Under other orders when refresh_interface is called for
+	// the first time we don't see the board yet, and it has
+	// to be called again for it to actually be shown.
 	bspace_show();
-	wrefresh(bspace.window);
 	refresh();
+	wrefresh(bspace.win);
 }
 
 
 int test_interface()
 {
-	/*bspace_move(0, 0),*/ refresh_interface(), getch();
-	// FIXME ^ this call doesn't show the interface yet and I don't know why
+	refresh_interface(), getch();
 
 	// TODO better environment for debugging the interface
 	// and understand what's happening
@@ -190,13 +200,16 @@ int test_interface()
 	bspace_select_dest(), refresh_interface(), getch();
 	bspace_move(1, 1), refresh_interface(), getch();
 	bspace_move(1, 1), refresh_interface(), getch();
-	board_cancel_movement(), refresh_interface(), getch();
+	bspace_cancel_movement(), refresh_interface(), getch();
+	bspace_move(1, 1), refresh_interface(), getch(); // At the end
+	bspace_move(1, 1), refresh_interface(), getch(); // Should not move
 }
 
 
 int main()
 {
 	init_interface();
+	mvprintw(LINES-2, 2, "test");
 	test_interface();
 	close_interface();
 }
