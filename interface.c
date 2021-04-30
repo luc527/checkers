@@ -34,14 +34,13 @@ typedef struct {
 // using to store game board positions -- the Position struct.
 
 /* There's only one board space ever in the game.
- * So its methods, instead of taking a Board_space as parameter,
- * operate on /the/ game's board space, which is stored
- * in the variable bpsace.
+ * So the bspace_ functions, instead of taking a Board_space as parameter,
+ * operate on /the/ board space, which is stored in the bspace variable.
  */
 Board_space bspace;
 
 
-/* bspace_reset just clears the board space movement information
+/* bspace_reset clears the board space movement information
  * but doesn't do anything with the window.
  */
 void bspace_reset()
@@ -62,14 +61,9 @@ void bspace_init()
 	bspace_reset();
 }
 
-/* We use the isblacksquare bool array
- * to check when to display a black square on the board.
- * [There *is* a pattern and we *could* find out which positions are
- * black dynamically (something like first line starts with black,
- * then each following square is the inverse of the previous,
- * then each line is the inverse of the previous line etc.),
- * but it's just a lot nicer to write "if (isblacksquare[row][col]) ...",
- * and not really costly.]
+/* The isblacksquare bool array is a lookup table
+ * that tells whether the given position is black or not.
+ * In particular, it implements a checkerboard pattern.
  */
 bool isblacksquare[8][8] = {
 	{ true, false, true, false, true, false, true, false },
@@ -83,15 +77,13 @@ bool isblacksquare[8][8] = {
 };
 
 // what if the terminal isn't large enough to display the whole board?
-// TODO do something to handle this situation
+// TODO check terminal size and if it's not large enough warn user and exit
 
 /* bspace_show() loads the visual representation of the board
  * space into its window.
  */
 void bspace_show()
 {
-	// Move to the start of the window,
-	// otherwise it'll show the updated board below the previous one
 	wmove(bspace.win, 0, 0);
 
 	for (int row = 7; row >= 0; row--) {
@@ -104,26 +96,35 @@ void bspace_show()
 		for (int col = 0; col < 8; col++) {
 			waddch(bspace.win, '|');
 
-			// Padding around the piece
-			// Also indicates current position and chosen src and dest positions
+			// Left and right padding around the piece
 			chtype left  = ' ';
 			chtype right = ' ';
-
-			if (bspace.chose_dest && row==bspace.desty && col==bspace.destx) {
-				wattron(bspace.win, A_BLINK);
-				left = '>';
-			} else if (bspace.chose_src && row==bspace.srcy && col==bspace.srcx) {
+			/* They also indicates player (with [] around), source (with < at the left)
+			 * and destination (with > at the left) positions.
+			 */
+			/* [NOTE: Alternative to < and > symbols:
+			 * language-dependent mnemonics defined in language.c
+			 * (like 's' for source and 'd' for destination)]
+			 */
+			/* The order of the following three ifs matters with respect to the padding:
+			 * its effect is that, on the same square,
+			 * player cursor [] overwrites destination symbol > overwrites source symbol <.
+			 */
+			if (bspace.chose_src && row==bspace.srcy && col==bspace.srcx) {
 				wattron(bspace.win, A_BLINK);
 				left = '<';
 			}
-
-			if (isblacksquare[row][col])
-				wattron(bspace.win, A_REVERSE);
-
+			if (bspace.chose_dest && row==bspace.desty && col==bspace.destx) {
+				wattron(bspace.win, A_BLINK);
+				left = '>';
+			} 
 			if (row == bspace.playery && col == bspace.playerx) {
 				left  = '[';
 				right = ']';
 			}
+
+			if (isblacksquare[row][col])
+				wattron(bspace.win, A_REVERSE);
 
 			waddch(bspace.win, left);
 			waddch(bspace.win, ' '); // <- Here's where the pieces will be printed
@@ -212,9 +213,8 @@ void close_interface()
 void refresh_interface()
 {
 	/* This is *the correct order* in which to call these functions.
-	 * Under other orders when refresh_interface is called for
-	 * the first time we don't see the board yet, and it has
-	 * to be called again for it to actually be shown.
+	 * Under other orders only a second call to refresh_interface
+	 * would display the board for the first time.
 	 */
 	bspace_show();
 	refresh();
@@ -226,21 +226,22 @@ void get_movement_interactively(Position *src, Position *dest)
 {
 	bspace.playery = bspace.playerx = 0;
 	// TODO remember previous position instead
+	// easy with a static variable
 
 	bspace_reset();
 	refresh_interface();
 
 	// TODO write somewhere what keys the player has to press
-	// and what they do (e.g. press wasd to move around, m to
+	// and what they do (e.g. "press wasd to move around, m to
 	// mark the current position as source or destination,
-	// u to undo the movement and ENTER when you're done)
+	// u to undo the movement and ENTER when you're done")
 	while (true) {
 		chtype ch = wgetch(bspace.win);
 		int yoffset = 0, xoffset = 0;
 		switch (ch) {
 		case 10:  // Enter
 			if (bspace.chose_src && bspace.chose_dest)
-				goto done;  // break wouldn't break the loop, but the case
+				goto done;  // 'break' wouldn't break the loop, but the switch case
 			// TODO else: print that the player has to perform a movement
 			break;
 		case 'u':
@@ -283,9 +284,6 @@ int main()
 
 	close_interface();
 
-	// Some post-processing of the coordinates might have to be done
-	// so that they match the actual positions in the board, but I'm
-	// not sure yet.
 	printf("(x,y) from 0 to 7\n");
 	printf("Source: (%d,%d)\n", src.col, src.row);
 	printf("Destination: (%d,%d)\n", dest.col, dest.row);
