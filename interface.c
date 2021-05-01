@@ -1,6 +1,7 @@
 #include <ncurses.h>
 #include "checkers.h"
 
+
 /* The board space is where the player will move their cursor
  * and choose what movement he is going to perform -- what
  * piece they're gonna move (the source) and where they're moving it
@@ -57,7 +58,7 @@ void bspace_init()
 {
 	// For now it'll occupy the whole screen
 	// Change when actually adding other things to the interface
-	bspace.win = newwin(0, 0, 0, 0);
+	bspace.win = newwin(LINES/2, COLS/2, 0, 0);
 	bspace_reset();
 }
 
@@ -188,14 +189,43 @@ void bspace_select_dest()
 	}
 }
 
-/* bspace_cancel_movement() is called to cancel the player's current movement.
- * Calling it will enable the player to choose a different movement.
+/* bspace_undo_movement() is called to undo the player's last marked position.
+ * If he has selected source and destination, calling it once will
+ * just un-select the destination, and calling it once more will
+ * un-select the source.
  */
-void bspace_cancel_movement()
+void bspace_undo_movement()
 {
-	bspace.chose_src = false;
-	bspace.chose_dest = false;
+	if (bspace.chose_dest) bspace.chose_dest = false;
+	else bspace.chose_src = false;
 }
+
+
+// ------------------------------
+
+// TODO change to extern when integrating with checkers.c
+Language language = EN;
+
+WINDOW *msgwin;
+
+void msgwin_init()
+{
+	msgwin = newwin(LINES/2, COLS/2, LINES/2+1, 0);
+}
+
+void msgwin_print(char *msg)
+{
+	wclear(msgwin);
+	wmove(msgwin, 0, 0);
+	waddstr(msgwin, msg);
+}
+
+
+// TODO make a instructions window that tells what each key does
+
+
+// ------------------------------
+
 
 void init_interface()
 {
@@ -203,11 +233,13 @@ void init_interface()
 	cbreak();
 	noecho();
 	curs_set(0);
+	msgwin_init();
 	bspace_init();
 }
 
 void close_interface()
 {
+	delwin(msgwin);
 	delwin(bspace.win);
 	endwin();
 }
@@ -221,6 +253,7 @@ void refresh_interface()
 	bspace_show();
 	refresh();
 	wrefresh(bspace.win);
+	wrefresh(msgwin);
 }
 
 
@@ -241,25 +274,24 @@ void get_movement_interactively(Position *src, Position *dest)
 		chtype ch = wgetch(bspace.win);
 		int yoffset = 0, xoffset = 0;
 		switch (ch) {
+
+			// FIXME msgwin_print is working, but not with getmsg
+
 		case 10:  // Enter
 			if (bspace.chose_src && bspace.chose_dest)
 				goto done;  // 'break' wouldn't break the loop, but the switch case
-			// TODO else: print that the player has to perform a movement
-			break;
+			else
+				msgwin_print(getmsg(MUST_SELECT_MOVEMENT, language));
 		case 'u':
-			bspace_cancel_movement();
-			// TODO make undo just cancel the last action:
-			// if player has chosen source and destination,
-			// pressing u once just undoes the destination,
-			// and pressing it once more undoes the whole movement
+			bspace_undo_movement();
 			break;
 		case 'm':
 			if (!bspace.chose_src)
 				bspace_select_src();
 			else if (!bspace.chose_dest)
 				bspace_select_dest();
-			// TODO else: status message with error (you must cancel the
-			// movement or press ENTER at this point)
+			else
+				msgwin_print(getmsg(ALREADY_SELECTED_MOVEMENT, language));
 			break;
 		case 'w': yoffset =  1; break;
 		case 's': yoffset = -1; break;

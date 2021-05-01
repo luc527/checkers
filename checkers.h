@@ -18,13 +18,16 @@ typedef enum {
     TIE_MSG,
     CURRENT_PLAYER,
     WHITE_PLAYER,
-    BLACK_PLAYER
+    BLACK_PLAYER,
+	MUST_SELECT_MOVEMENT,
+	ALREADY_SELECTED_MOVEMENT,
 } Message;
-#define NMESSAGES 11
+#define NMESSAGES 13
+#define MSGLEN 200
 
 void init_messages_array(void);
 
-void printmsg(Message, Language);
+char *getmsg(Message, Language);
 // }}}
 
 // Simple typedefs {{{
