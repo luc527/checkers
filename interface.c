@@ -76,6 +76,12 @@ bool isblacksquare[8][8] = {
 	{ false, true, false, true, false, true, false, true },
 };
 
+// With the current implementation the board will have its colors inverted,
+// because currently the code sets A_REVERSE on when it's a black square,
+// which makes sense for the light color schemes that I use, but will
+// make the square white on terminals with a dark background.
+// TODO display the board corretly on terminals with light AND dark background.
+
 // what if the terminal isn't large enough to display the whole board?
 // TODO check terminal size and if it's not large enough warn user and exit
 
@@ -86,16 +92,13 @@ void bspace_show()
 {
 	wmove(bspace.win, 0, 0);
 
+	// Frame top -- 3*8 hyphens (each square is 3 characters wide)
+	waddstr(bspace.win, ".------------------------.\n");
+
 	for (int row = 7; row >= 0; row--) {
-		// Row separator:
-		waddch(bspace.win, '+');
-		for (int col = 0; col < 8; col++)
-			waddstr(bspace.win, "---+");
-		waddch(bspace.win, '\n');
+		waddch(bspace.win, '|');  // Frame left
 
 		for (int col = 0; col < 8; col++) {
-			waddch(bspace.win, '|');
-
 			// Left and right padding around the piece
 			chtype left  = ' ';
 			chtype right = ' ';
@@ -133,13 +136,12 @@ void bspace_show()
 			// Turn off all attributes that might have been turned on
 			wattroff(bspace.win, A_BLINK | A_UNDERLINE | A_REVERSE);
 		}
-		waddch(bspace.win, '|');
+		waddch(bspace.win, '|');  // Frame right
 		waddch(bspace.win, '\n');
 	}
-	waddch(bspace.win, '+');
-	for (int col = 0; col < 8; col++)
-		waddstr(bspace.win, "---+");
-	waddch(bspace.win, '\n');
+
+	// Frame bottom
+	waddstr(bspace.win, "'------------------------'");
 }
 
 /* bspace_move is called to move the player's position in the
