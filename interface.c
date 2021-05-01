@@ -23,12 +23,12 @@
  *   stored in playery and playerx.
  */
 typedef struct {
-	WINDOW *win;
-	int playery, playerx;
-	int srcy,    srcx;
-	int desty,   destx;
-	bool chose_src;
-	bool chose_dest;
+    WINDOW *win;
+    int playery, playerx;
+    int srcy,    srcx;
+    int desty,   destx;
+    bool chose_src;
+    bool chose_dest;
 } Board_space;
 // TODO since these y and x coordinates won't reflect actual screen
 // coordinates, it'd be better to use the same data type I've been
@@ -46,20 +46,20 @@ Board_space bspace;
  */
 void bspace_reset()
 {
-	bspace.srcy = bspace.srcx = 0;
-	bspace.desty = bspace.destx = 0;
-	bspace.playery = bspace.playerx = 0;
-	bspace.chose_src = false;
-	bspace.chose_dest = false;
+    bspace.srcy = bspace.srcx = 0;
+    bspace.desty = bspace.destx = 0;
+    bspace.playery = bspace.playerx = 0;
+    bspace.chose_src = false;
+    bspace.chose_dest = false;
 }
 
 // bspace_init is like the constructor.
 void bspace_init()
 {
-	// For now it'll occupy the whole screen
-	// Change when actually adding other things to the interface
-	bspace.win = newwin(LINES/2, COLS/2, 0, 0);
-	bspace_reset();
+    // For now it'll occupy the whole screen
+    // Change when actually adding other things to the interface
+    bspace.win = newwin(LINES/2, COLS/2, 0, 0);
+    bspace_reset();
 }
 
 /* The isblacksquare bool array is a lookup table
@@ -67,14 +67,14 @@ void bspace_init()
  * In particular, it implements a checkerboard pattern.
  */
 bool isblacksquare[8][8] = {
-	{ true, false, true, false, true, false, true, false },
-	{ false, true, false, true, false, true, false, true },
-	{ true, false, true, false, true, false, true, false },
-	{ false, true, false, true, false, true, false, true },
-	{ true, false, true, false, true, false, true, false },
-	{ false, true, false, true, false, true, false, true },
-	{ true, false, true, false, true, false, true, false },
-	{ false, true, false, true, false, true, false, true },
+    { true, false, true, false, true, false, true, false },
+    { false, true, false, true, false, true, false, true },
+    { true, false, true, false, true, false, true, false },
+    { false, true, false, true, false, true, false, true },
+    { true, false, true, false, true, false, true, false },
+    { false, true, false, true, false, true, false, true },
+    { true, false, true, false, true, false, true, false },
+    { false, true, false, true, false, true, false, true },
 };
 
 // With the current implementation the board will have its colors inverted,
@@ -91,58 +91,58 @@ bool isblacksquare[8][8] = {
  */
 void bspace_show()
 {
-	wmove(bspace.win, 0, 0);
+    wmove(bspace.win, 0, 0);
 
-	// Frame top -- 3*8 hyphens (each square is 3 characters wide)
-	waddstr(bspace.win, ".------------------------.\n");
+    // Frame top -- 3*8 hyphens (each square is 3 characters wide)
+    waddstr(bspace.win, ".------------------------.\n");
 
-	for (int row = 7; row >= 0; row--) {
-		waddch(bspace.win, '|');  // Frame left
+    for (int row = 7; row >= 0; row--) {
+        waddch(bspace.win, '|');  // Frame left
 
-		for (int col = 0; col < 8; col++) {
-			// Left and right padding around the piece
-			chtype left  = ' ';
-			chtype right = ' ';
-			/* They also indicates player (with [] around), source (with < at the left)
-			 * and destination (with > at the left) positions.
-			 */
-			/* [NOTE: Alternative to < and > symbols:
-			 * language-dependent mnemonics defined in language.c
-			 * (like 's' for source and 'd' for destination)]
-			 */
-			/* The order of the following three ifs matters with respect to the padding:
-			 * its effect is that, on the same square,
-			 * player cursor [] overwrites destination symbol > overwrites source symbol <.
-			 */
-			if (bspace.chose_src && row==bspace.srcy && col==bspace.srcx) {
-				wattron(bspace.win, A_BLINK);
-				left = '<';
-			}
-			if (bspace.chose_dest && row==bspace.desty && col==bspace.destx) {
-				wattron(bspace.win, A_BLINK);
-				left = '>';
-			} 
-			if (row == bspace.playery && col == bspace.playerx) {
-				left  = '[';
-				right = ']';
-			}
+        for (int col = 0; col < 8; col++) {
+            // Left and right padding around the piece
+            chtype left  = ' ';
+            chtype right = ' ';
+            /* They also indicates player (with [] around), source (with < at the left)
+             * and destination (with > at the left) positions.
+             */
+            /* [NOTE: Alternative to < and > symbols:
+             * language-dependent mnemonics defined in language.c
+             * (like 's' for source and 'd' for destination)]
+             */
+            /* The order of the following three ifs matters with respect to the padding:
+             * its effect is that, on the same square,
+             * player cursor [] overwrites destination symbol > overwrites source symbol <.
+             */
+            if (bspace.chose_src && row==bspace.srcy && col==bspace.srcx) {
+                wattron(bspace.win, A_BLINK);
+                left = '<';
+            }
+            if (bspace.chose_dest && row==bspace.desty && col==bspace.destx) {
+                wattron(bspace.win, A_BLINK);
+                left = '>';
+            } 
+            if (row == bspace.playery && col == bspace.playerx) {
+                left  = '[';
+                right = ']';
+            }
 
-			if (isblacksquare[row][col])
-				wattron(bspace.win, A_REVERSE);
+            if (isblacksquare[row][col])
+                wattron(bspace.win, A_REVERSE);
 
-			waddch(bspace.win, left);
-			waddch(bspace.win, ' '); // <- Here's where the pieces will be printed
-			waddch(bspace.win, right);
+            waddch(bspace.win, left);
+            waddch(bspace.win, ' '); // <- Here's where the pieces will be printed
+            waddch(bspace.win, right);
 
-			// Turn off all attributes that might have been turned on
-			wattroff(bspace.win, A_BLINK | A_UNDERLINE | A_REVERSE);
-		}
-		waddch(bspace.win, '|');  // Frame right
-		waddch(bspace.win, '\n');
-	}
+            // Turn off all attributes that might have been turned on
+            wattroff(bspace.win, A_BLINK | A_UNDERLINE | A_REVERSE);
+        }
+        waddch(bspace.win, '|');  // Frame right
+        waddch(bspace.win, '\n');
+    }
 
-	// Frame bottom
-	waddstr(bspace.win, "'------------------------'");
+    // Frame bottom
+    waddstr(bspace.win, "'------------------------'");
 }
 
 /* bspace_move is called to move the player's position in the
@@ -152,11 +152,11 @@ void bspace_show()
  */
 void bspace_move(int yoffset, int xoffset)
 {
-	int newy = clamp(bspace.playery + yoffset, 0, 7);
-	int newx = clamp(bspace.playerx + xoffset, 0, 7);
+    int newy = clamp(bspace.playery + yoffset, 0, 7);
+    int newx = clamp(bspace.playerx + xoffset, 0, 7);
 
-	bspace.playery = newy;
-	bspace.playerx = newx;
+    bspace.playery = newy;
+    bspace.playerx = newx;
 }
 
 /* bspace_select_src() is called to mark the player's current position
@@ -167,11 +167,11 @@ void bspace_move(int yoffset, int xoffset)
  */
 void bspace_select_src()
 {
-	if (!bspace.chose_dest && !bspace.chose_src) {
-		bspace.srcy = bspace.playery;
-		bspace.srcx = bspace.playerx ;
-		bspace.chose_src = true;
-	}
+    if (!bspace.chose_dest && !bspace.chose_src) {
+        bspace.srcy = bspace.playery;
+        bspace.srcx = bspace.playerx ;
+        bspace.chose_src = true;
+    }
 }
 
 /* bspace_select_dest() is called to mark the player's current position
@@ -182,11 +182,11 @@ void bspace_select_src()
  */
 void bspace_select_dest()
 {
-	if (bspace.chose_src && !bspace.chose_dest) {
-		bspace.desty = bspace.playery;
-		bspace.destx = bspace.playerx;
-		bspace.chose_dest = true;
-	}
+    if (bspace.chose_src && !bspace.chose_dest) {
+        bspace.desty = bspace.playery;
+        bspace.destx = bspace.playerx;
+        bspace.chose_dest = true;
+    }
 }
 
 /* bspace_undo_movement() is called to undo the player's last marked position.
@@ -196,28 +196,28 @@ void bspace_select_dest()
  */
 void bspace_undo_movement()
 {
-	if (bspace.chose_dest) bspace.chose_dest = false;
-	else bspace.chose_src = false;
+    if (bspace.chose_dest) bspace.chose_dest = false;
+    else bspace.chose_src = false;
 }
 
 
 // ------------------------------
 
 // TODO change to extern when integrating with checkers.c
-Language language = EN;
+Language language = PT;
 
 WINDOW *msgwin;
 
 void msgwin_init()
 {
-	msgwin = newwin(LINES/2, COLS/2, LINES/2+1, 0);
+    msgwin = newwin(LINES/2, COLS/2, LINES/2+1, 0);
 }
 
 void msgwin_print(char *msg)
 {
-	wclear(msgwin);
-	wmove(msgwin, 0, 0);
-	waddstr(msgwin, msg);
+    wclear(msgwin);
+    wmove(msgwin, 0, 0);
+    waddstr(msgwin, msg);
 }
 
 
@@ -229,99 +229,100 @@ void msgwin_print(char *msg)
 
 void init_interface()
 {
-	initscr();
-	cbreak();
-	noecho();
-	curs_set(0);
-	msgwin_init();
-	bspace_init();
+    initscr();
+    cbreak();
+    noecho();
+    curs_set(0);
+    msgwin_init();
+    bspace_init();
 }
 
 void close_interface()
 {
-	delwin(msgwin);
-	delwin(bspace.win);
-	endwin();
+    delwin(msgwin);
+    delwin(bspace.win);
+    endwin();
 }
 
 void refresh_interface()
 {
-	/* This is *the correct order* in which to call these functions.
-	 * Under other orders only a second call to refresh_interface
-	 * would display the board for the first time.
-	 */
-	bspace_show();
-	refresh();
-	wrefresh(bspace.win);
-	wrefresh(msgwin);
+    /* This is *the correct order* in which to call these functions.
+     * Under other orders only a second call to refresh_interface
+     * would display the board for the first time.
+     */
+    bspace_show();
+    refresh();
+    wrefresh(bspace.win);
+    wrefresh(msgwin);
 }
 
 
 void get_movement_interactively(Position *src, Position *dest) 
 {
-	bspace.playery = bspace.playerx = 0;
-	// TODO remember previous position instead
-	// easy with a static variable
+    bspace.playery = bspace.playerx = 0;
+    // TODO remember previous position instead
+    // easy with a static variable
 
-	bspace_reset();
-	refresh_interface();
+    bspace_reset();
+    refresh_interface();
 
-	// TODO write somewhere what keys the player has to press
-	// and what they do (e.g. "press wasd to move around, m to
-	// mark the current position as source or destination,
-	// u to undo the movement and ENTER when you're done")
-	while (true) {
-		chtype ch = wgetch(bspace.win);
-		int yoffset = 0, xoffset = 0;
-		switch (ch) {
+    // TODO write somewhere what keys the player has to press
+    // and what they do (e.g. "press wasd to move around, m to
+    // mark the current position as source or destination,
+    // u to undo the movement and ENTER when you're done")
+    while (true) {
+        chtype ch = wgetch(bspace.win);
+        int yoffset = 0, xoffset = 0;
+        switch (ch) {
 
-			// FIXME msgwin_print is working, but not with getmsg
+            // FIXME msgwin_print is working, but not with getmsg
 
-		case 10:  // Enter
-			if (bspace.chose_src && bspace.chose_dest)
-				goto done;  // 'break' wouldn't break the loop, but the switch case
-			else
-				msgwin_print(getmsg(MUST_SELECT_MOVEMENT, language));
-		case 'u':
-			bspace_undo_movement();
-			break;
-		case 'm':
-			if (!bspace.chose_src)
-				bspace_select_src();
-			else if (!bspace.chose_dest)
-				bspace_select_dest();
-			else
-				msgwin_print(getmsg(ALREADY_SELECTED_MOVEMENT, language));
-			break;
-		case 'w': yoffset =  1; break;
-		case 's': yoffset = -1; break;
-		case 'd': xoffset =  1; break;
-		case 'a': xoffset = -1; break;
-		}
-		bspace_move(yoffset, xoffset);
-		refresh_interface();
-	}
+        case 10:  // Enter
+            if (bspace.chose_src && bspace.chose_dest)
+                goto done;  // 'break' wouldn't break the loop, but the switch case
+            else
+                msgwin_print(getmsg(MUST_SELECT_MOVEMENT, language));
+        case 'u':
+            bspace_undo_movement();
+            break;
+        case 'm':
+            if (!bspace.chose_src)
+                bspace_select_src();
+            else if (!bspace.chose_dest)
+                bspace_select_dest();
+            else
+                msgwin_print(getmsg(ALREADY_SELECTED_MOVEMENT, language));
+            break;
+        case 'w': yoffset =  1; break;
+        case 's': yoffset = -1; break;
+        case 'd': xoffset =  1; break;
+        case 'a': xoffset = -1; break;
+        }
+        bspace_move(yoffset, xoffset);
+        refresh_interface();
+    }
 done:
-	src->row = bspace.srcy;
-	src->col = bspace.srcx;
-	dest->row = bspace.desty;
-	dest->col = bspace.destx;
+    src->row = bspace.srcy;
+    src->col = bspace.srcx;
+    dest->row = bspace.desty;
+    dest->col = bspace.destx;
 }
 
 
 int main()
 {
-	init_interface();
+    init_messages_array();
+    init_interface();
 
-	Position src, dest;
-	get_movement_interactively(&src, &dest);
+    Position src, dest;
+    get_movement_interactively(&src, &dest);
 
-	close_interface();
+    close_interface();
 
-	printf("(x,y) from 0 to 7\n");
-	printf("Source: (%d,%d)\n", src.col, src.row);
-	printf("Destination: (%d,%d)\n", dest.col, dest.row);
+    printf("(x,y) from 0 to 7\n");
+    printf("Source: (%d,%d)\n", src.col, src.row);
+    printf("Destination: (%d,%d)\n", dest.col, dest.row);
 
-	return 0;
+    return 0;
 }
 

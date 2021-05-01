@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include "checkers.h"
 
-char *msgs[NLANGS][NMESSAGES];
+static char *msgs[NLANGS][NMESSAGES];
+
+static bool initialized = false;
 
 static void init_pt()
 {
@@ -16,8 +18,8 @@ static void init_pt()
     msgs[PT][CURRENT_PLAYER] = "Jogador atual: ";
     msgs[PT][WHITE_PLAYER] = "branco (o@)\n";
     msgs[PT][BLACK_PLAYER] = "preto (*X)\n";
-	msgs[PT][MUST_SELECT_MOVEMENT] = "Voce deve selecionar um movimento.";
-	msgs[PT][ALREADY_SELECTED_MOVEMENT] = "Voce ja selecionou um movimento."
+    msgs[PT][MUST_SELECT_MOVEMENT] = "Voce deve selecionar um movimento.";
+    msgs[PT][ALREADY_SELECTED_MOVEMENT] = "Voce ja selecionou um movimento."
                                           " Cancele ou confirme-o.";
 }
 
@@ -34,13 +36,14 @@ static void init_en()
     msgs[EN][CURRENT_PLAYER] = "Current player: ";
     msgs[EN][WHITE_PLAYER] = "white (o@)\n";
     msgs[EN][BLACK_PLAYER] = "black (*X)\n";
-	msgs[EN][MUST_SELECT_MOVEMENT] = "You must select a movement.";
-	msgs[EN][ALREADY_SELECTED_MOVEMENT] = "You already selected a movement."
-	                                      " Either undo or confirm it.";
+    msgs[EN][MUST_SELECT_MOVEMENT] = "You must select a movement.";
+    msgs[EN][ALREADY_SELECTED_MOVEMENT] = "You already selected a movement."
+                                          " Either undo or confirm it.";
 }
 
 void init_messages_array()
 {
+    initialized = true;
     init_pt();
     init_en();
 }
@@ -48,10 +51,16 @@ void init_messages_array()
 
 char *getmsg(Message msg, Language lang)
 {
-	static char *err = "ERROR: Attempted to print invalid message"
-	                   " and/or message in invalid language.";
-	if (msg >= 0 && msg < NMESSAGES && lang >= 0 && lang < NLANGS)
-		return msgs[lang][msg];
-	else return err;
+    static char *uninitErr = "ERROR: Messages have not been initialized."
+                             " Call init_messages_array() somewhere.";
+    static char *invalidErr = "ERROR: Attempted to print invalid message"
+                              " and/or message in invalid language.";
+
+    if (!initialized)
+        return uninitErr;
+    else if (msg < 0 || msg >= NMESSAGES || lang < 0 || lang >= NLANGS)
+        return invalidErr;
+    else
+        return msgs[lang][msg];
 }
 
