@@ -204,7 +204,7 @@ void bspace_undo_movement()
 // ------------------------------
 
 // TODO change to extern when integrating with checkers.c
-Language language = PT;
+Language language = EN;
 
 WINDOW *msgwin;
 
@@ -221,7 +221,16 @@ void msgwin_print(char *msg)
 }
 
 
-// TODO make a instructions window that tells what each key does
+// ------------------------------
+
+
+WINDOW *instrwin;
+
+void instrwin_init()
+{
+    instrwin = newwin(LINES, COLS/2, 0, COLS/2+1);
+    waddstr(instrwin, getmsg(INSTRUCTIONS, language));
+}
 
 
 // ------------------------------
@@ -234,12 +243,14 @@ void init_interface()
     noecho();
     curs_set(0);
     msgwin_init();
+    instrwin_init();
     bspace_init();
 }
 
 void close_interface()
 {
     delwin(msgwin);
+    delwin(instrwin);
     delwin(bspace.win);
     endwin();
 }
@@ -254,6 +265,7 @@ void refresh_interface()
     refresh();
     wrefresh(bspace.win);
     wrefresh(msgwin);
+    wrefresh(instrwin);
 }
 
 

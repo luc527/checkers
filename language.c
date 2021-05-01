@@ -21,6 +21,13 @@ static void init_pt()
     msgs[PT][MUST_SELECT_MOVEMENT] = "Voce deve selecionar um movimento.";
     msgs[PT][ALREADY_SELECTED_MOVEMENT] = "Voce ja selecionou um movimento."
                                           " Cancele ou confirme-o.";
+    msgs[PT][INSTRUCTIONS] = ""
+        "== MOVIMENTO NO TABULEIRO == \n"
+        "WASD para se movimentar pelo tabuleiro\n"
+        "m para marcar origem do movimento\n"
+        "m marcar para selecionar destino do movimento\n"
+        "u para desfazer o movimento\n"
+        "ENTER para confirmar o movimento\n";
 }
 
 static void init_en()
@@ -39,6 +46,13 @@ static void init_en()
     msgs[EN][MUST_SELECT_MOVEMENT] = "You must select a movement.";
     msgs[EN][ALREADY_SELECTED_MOVEMENT] = "You already selected a movement."
                                           " Either undo or confirm it.";
+    msgs[EN][INSTRUCTIONS] = ""
+        "== BOARD MOVEMENT == \n"
+        "WASD to move around the board\n"
+        "m to mark movement source\n"
+        "m again to mark movement destination\n"
+        "u to undo movement\n"
+        "ENTER to confirm movement\n";
 }
 
 void init_messages_array()

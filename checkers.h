@@ -21,9 +21,9 @@ typedef enum {
     BLACK_PLAYER,
 	MUST_SELECT_MOVEMENT,
 	ALREADY_SELECTED_MOVEMENT,
+    INSTRUCTIONS
 } Message;
-#define NMESSAGES 13
-#define MSGLEN 200
+#define NMESSAGES 14
 
 void init_messages_array(void);
 
