@@ -1,8 +1,8 @@
 #include <ncurses.h>
 #include "checkers.h"
 
-// Internal API {{{
 // Board space {{{
+
 /* The board space is where the player will move their cursor and choose what
  * movement they're going to perform -- what piece they're gonna move (the
  * source) and where they're moving it to (the destination).
@@ -41,15 +41,26 @@ typedef struct {
  */
 Board_space bspace;
 
-
 /* bspace_reset clears the board space movement information
  * but doesn't do anything with the window.
  */
-void bspace_reset();
+void bspace_reset()
+{
+    bspace.srcy = bspace.srcx = 0;
+    bspace.desty = bspace.destx = 0;
+    bspace.playery = bspace.playerx = 0;
+    bspace.chose_src = false;
+    bspace.chose_dest = false;
+}
 
-/* bspace_init is like the constructor.
- */
-void bspace_init();
+/* bspace_init is like the constructor.  */
+void bspace_init()
+{
+    // For now it'll occupy the whole screen
+    // Change when actually adding other things to the interface
+    bspace.win = newwin(LINES/2, COLS/2, 0, 0);
+    bspace_reset();
+}
 
 /* The isblacksquare bool array is a lookup table
  * that tells whether the given position is black or not.
@@ -65,115 +76,6 @@ bool isblacksquare[8][8] = {
     { true, false, true, false, true, false, true, false },
     { false, true, false, true, false, true, false, true },
 };
-
-/* bspace_show() loads the visual representation of the board
- * space into its window.
- */
-void bspace_show();
-
-/* bspace_move is called to move the player's position in the
- * board according to the given offset. To move left, for instance,
- * yoffset would be 0 and xoffset would be 1.
- * The method guarantees that the final position is not out of bounds.
- */
-void bspace_move(int yoffset, int xoffset);
-
-/* bspace_select_src() is called to mark the player's current position
- * in the board space as the source of the movement to be performed.
- * It'll only work if the player hasn't chosen a source or a destination yet.
- * If he has already chosen a source he has to cancel the movement
- * to choose again.
- */
-void bspace_select_src();
-
-/* bspace_select_dest() is called to mark the player's current position
- * in the board space as the destination of the movement to be performed.
- * It'll only work if the player has already chosen a source and
- * hasn't yet chosen a destination. Again, if he wants to change
- * the destination he'll have to cancel the current movement first.
- */
-void bspace_select_dest();
-
-/* bspace_undo_movement() is called to undo the player's last marked position.
- * If he has selected source and destination, calling it once will
- * just un-select the destination, and calling it once more will
- * un-select the source.
- */
-void bspace_undo_movement();
-// }}}
-
-// Message window {{{
-// TODO change to extern when integrating with checkers.c
-Language language = EN;
-
-/* msgwin is the message window where messages will be displayed to the user,
- * warning them when he does something wrong, telling him if he 
- * must perform a capture etc.
- */
-WINDOW *msgwin;
-
-/* msgwin_init is msgwin's constructor
- */
-void msgwin_init();
-
-/* msgwin_print prints the given message on the messages window.
- * It overwrites the previous message.
- */
-void msgwin_print(char *msg);
-// }}}
-
-// Instructions and controls window {{{
-/* instrwin is the instructions window where the instructions
- * and controls are displayed.
- */
-WINDOW *instrwin;
-
-/* instrwin_init is instrwin's constructor
- */
-void instrwin_init();
-// }}}
-
-// Interface {{{
-/* init_interface sets up ncurses and initializes each window
- */
-void init_interface();
-
-/* close_interface deletes the windows and ends ncurses
- */
-void close_interface();
-
-/* refresh_interface updates the screen
- */
-void refresh_interface();
-
-/* get_movement_interactively is the interaction loop where the player can move
- * around the board, select source and destination positions, and confirm the
- * movement, thereby loading the selected positions into the given src and dest
- * position pointers.
- */
-void get_movement_interactively(Position *src, Position *dest);
-// }}} (Interface fold)
-// }}} (Implementation fold)
-
-// Implementation {{{
-// Board space {{{
-void bspace_reset()
-{
-    bspace.srcy = bspace.srcx = 0;
-    bspace.desty = bspace.destx = 0;
-    bspace.playery = bspace.playerx = 0;
-    bspace.chose_src = false;
-    bspace.chose_dest = false;
-}
-
-void bspace_init()
-{
-    // For now it'll occupy the whole screen
-    // Change when actually adding other things to the interface
-    bspace.win = newwin(LINES/2, COLS/2, 0, 0);
-    bspace_reset();
-}
-
 // With the current implementation the board will have its colors inverted,
 // because currently the code sets A_REVERSE on when it's a black square,
 // which makes sense for the light color schemes that I use, but will
@@ -183,6 +85,9 @@ void bspace_init()
 // what if the terminal isn't large enough to display the whole board?
 // TODO check terminal size and if it's not large enough warn user and exit
 
+/* bspace_show() loads the visual representation of the board
+ * space into its window.
+ */
 void bspace_show()
 {   // {{{
     wmove(bspace.win, 0, 0);
@@ -239,6 +144,11 @@ void bspace_show()
     waddstr(bspace.win, "'------------------------'");
 }   // }}}
 
+/* bspace_move is called to move the player's position in the
+ * board according to the given offset. To move left, for instance,
+ * yoffset would be 0 and xoffset would be 1.
+ * The method guarantees that the final position is not out of bounds.
+ */
 void bspace_move(int yoffset, int xoffset)
 {
     int newy = clamp(bspace.playery + yoffset, 0, 7);
@@ -248,6 +158,12 @@ void bspace_move(int yoffset, int xoffset)
     bspace.playerx = newx;
 }
 
+/* bspace_select_src() is called to mark the player's current position
+ * in the board space as the source of the movement to be performed.
+ * It'll only work if the player hasn't chosen a source or a destination yet.
+ * If he has already chosen a source he has to cancel the movement
+ * to choose again.
+ */
 void bspace_select_src()
 {
     if (!bspace.chose_dest && !bspace.chose_src) {
@@ -257,6 +173,12 @@ void bspace_select_src()
     }
 }
 
+/* bspace_select_dest() is called to mark the player's current position
+ * in the board space as the destination of the movement to be performed.
+ * It'll only work if the player has already chosen a source and
+ * hasn't yet chosen a destination. Again, if he wants to change
+ * the destination he'll have to cancel the current movement first.
+ */
 void bspace_select_dest()
 {
     if (bspace.chose_src && !bspace.chose_dest) {
@@ -266,6 +188,11 @@ void bspace_select_dest()
     }
 }
 
+/* bspace_undo_movement() is called to undo the player's last marked position.
+ * If he has selected source and destination, calling it once will
+ * just un-select the destination, and calling it once more will
+ * un-select the source.
+ */
 void bspace_undo_movement()
 {
     if (bspace.chose_dest) bspace.chose_dest = false;
@@ -274,11 +201,25 @@ void bspace_undo_movement()
 // }}}
 
 // Message window {{{
+
+// TODO change to extern when integrating with checkers.c
+Language language = EN;
+
+/* msgwin is the message window where messages will be displayed to the user,
+ * warning them when he does something wrong, telling him if he 
+ * must perform a capture etc.
+ */
+WINDOW *msgwin;
+
+/* msgwin_init is msgwin's constructor */
 void msgwin_init()
 {
     msgwin = newwin(LINES/2, COLS/2, LINES/2+1, 0);
 }
 
+/* msgwin_print prints the given message on the messages window.
+ * It overwrites the previous message.
+ */
 void msgwin_print(char *msg)
 {
     wclear(msgwin);
@@ -288,6 +229,13 @@ void msgwin_print(char *msg)
 // }}}
 
 // Instructions and controls window {{{
+
+/* instrwin is the instructions window where the instructions
+ * and controls are displayed.
+ */
+WINDOW *instrwin;
+
+/* instrwin_init is instrwin's constructor */
 void instrwin_init()
 {
     instrwin = newwin(LINES, COLS/2, 0, COLS/2+1);
@@ -296,6 +244,7 @@ void instrwin_init()
 // }}}
 
 // Interface {{{
+/* init_interface sets up ncurses and initializes each window */
 void init_interface()
 {
     initscr();
@@ -307,6 +256,7 @@ void init_interface()
     bspace_init();
 }
 
+/* close_interface deletes the windows and ends ncurses */
 void close_interface()
 {
     delwin(msgwin);
@@ -315,6 +265,7 @@ void close_interface()
     endwin();
 }
 
+/* refresh_interface updates the screen */
 void refresh_interface()
 {
     /* This is *the correct order* in which to call these functions.
@@ -329,6 +280,11 @@ void refresh_interface()
 }
 
 
+/* get_movement_interactively is the interaction loop where the player can move
+ * around the board, select source and destination positions, and confirm the
+ * movement, thereby loading the selected positions into the given src and dest
+ * position pointers.
+ */
 void get_movement_interactively(Position *src, Position *dest) 
 {   //{{{
     bspace.playery = bspace.playerx = 0;
@@ -379,8 +335,7 @@ done:
     dest->row = bspace.desty;
     dest->col = bspace.destx;
 }   // }}}
-// }}} (Interface fold)
-// }}} (Implementation fold)
+// }}}
 
 int main()
 {
