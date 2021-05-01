@@ -49,7 +49,7 @@ void init_messages_array()
 char *getmsg(Message msg, Language lang)
 {
 	static char *err = "ERROR: Attempted to print invalid message"
-	                   "and/or message in invalid language.";
+	                   " and/or message in invalid language.";
 	if (msg >= 0 && msg < NMESSAGES && lang >= 0 && lang < NLANGS)
 		return msgs[lang][msg];
 	else return err;
