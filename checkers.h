@@ -18,13 +18,16 @@ typedef enum {
     TIE_MSG,
     CURRENT_PLAYER,
     WHITE_PLAYER,
-    BLACK_PLAYER
+    BLACK_PLAYER,
+	MUST_SELECT_MOVEMENT,
+	ALREADY_SELECTED_MOVEMENT,
+    INSTRUCTIONS
 } Message;
-#define NMESSAGES 11
+#define NMESSAGES 14
 
 void init_messages_array(void);
 
-void printmsg(Message, Language);
+char *getmsg(Message, Language);
 // }}}
 
 // Simple typedefs {{{
@@ -46,7 +49,7 @@ typedef struct {
 
 // util.c {{{
 bool read_position  (Position *);
-void print_position (Position);
+void print_position (char *, Position);
 
 bool is_valid_position    (Position);
 bool is_diagonal          (Position, Position);
@@ -59,6 +62,7 @@ bool same_color           (Piece, Piece);
 bool piece_matches_player (Piece, Color);
 
 int abs(int);
+int clamp(int, int min, int max);
 // }}}
 
 // game_state.c {{{
@@ -133,6 +137,15 @@ typedef struct {
 } Movoptions_player;
 
 void generate_movoptions_player(Game_state *, Movoptions_player *);
+// }}}
+
+// {{{ interface.c
+void msgwin_print(char *);
+void msgwin_append(char *);
+
+void init_interface();
+void close_interface();
+void get_movement_interactively(Game_state *state, Position *src, Position *dest);
 // }}}
 
 #endif
