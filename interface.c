@@ -85,10 +85,20 @@ bool isblacksquare[8][8] = {
 // what if the terminal isn't large enough to display the whole board?
 // TODO check terminal size and if it's not large enough warn user and exit
 
+/* piece_to_char associates each piece with a character that displays it. */
+char piece_to_char[] = {
+    [EMPTY]       = ' ',
+    [WHITE_STONE] = 'o',
+    [BLACK_STONE] = '*',
+    [WHITE_DAME]  = '@',
+    [BLACK_DAME]  = 'X'
+
+};
+
 /* bspace_show() loads the visual representation of the board
  * space into its window.
  */
-void bspace_show()
+void bspace_show(Game_state *state)
 {   // {{{
     wmove(bspace.win, 0, 0);
 
@@ -130,7 +140,8 @@ void bspace_show()
                 wattron(bspace.win, A_REVERSE);
 
             waddch(bspace.win, left);
-            waddch(bspace.win, ' '); // <- Here's where the pieces will be printed
+            Position pos = { row, col };
+            waddch(bspace.win, piece_to_char[get_piece(state, pos)]);
             waddch(bspace.win, right);
 
             // Turn off all attributes that might have been turned on
@@ -202,8 +213,11 @@ void bspace_undo_movement()
 
 // Message window {{{
 
-// TODO change to extern when integrating with checkers.c
-Language language = EN;
+extern Language language;
+
+// TODO regarding msgwin, test whether printing a string too long
+// is handled correctly: what doesn't fit in the current filled up line 
+// is printed in the line below. 
 
 /* msgwin is the message window where messages will be displayed to the user,
  * warning them when he does something wrong, telling him if he 
@@ -225,6 +239,12 @@ void msgwin_print(char *msg)
     wclear(msgwin);
     wmove(msgwin, 0, 0);
     waddstr(msgwin, msg);
+}
+
+/* msgwin_append appends the given string to the existing message. */
+void msgwin_append(char *s)
+{
+    waddstr(msgwin, s);
 }
 // }}}
 
@@ -266,13 +286,13 @@ void close_interface()
 }
 
 /* refresh_interface updates the screen */
-void refresh_interface()
+void refresh_interface(Game_state *state)
 {
     /* This is *the correct order* in which to call these functions.
      * Under other orders only a second call to refresh_interface
      * would display the board for the first time.
      */
-    bspace_show();
+    bspace_show(state);
     refresh();
     wrefresh(bspace.win);
     wrefresh(msgwin);
@@ -285,14 +305,14 @@ void refresh_interface()
  * movement, thereby loading the selected positions into the given src and dest
  * position pointers.
  */
-void get_movement_interactively(Position *src, Position *dest) 
+void get_movement_interactively(Game_state *state, Position *src, Position *dest) 
 {   //{{{
     bspace.playery = bspace.playerx = 0;
     // TODO remember previous position instead
     // easy with a static variable
 
     bspace_reset();
-    refresh_interface();
+    refresh_interface(state);
 
     // TODO write somewhere what keys the player has to press
     // and what they do (e.g. "press wasd to move around, m to
@@ -302,9 +322,6 @@ void get_movement_interactively(Position *src, Position *dest)
         chtype ch = wgetch(bspace.win);
         int yoffset = 0, xoffset = 0;
         switch (ch) {
-
-            // FIXME msgwin_print is working, but not with getmsg
-
         case 10:  // Enter
             if (bspace.chose_src && bspace.chose_dest)
                 goto done;  // 'break' wouldn't break the loop, but the switch case
@@ -327,7 +344,7 @@ void get_movement_interactively(Position *src, Position *dest)
         case 'a': xoffset = -1; break;
         }
         bspace_move(yoffset, xoffset);
-        refresh_interface();
+        refresh_interface(state);
     }
 done:
     src->row = bspace.srcy;
@@ -336,21 +353,4 @@ done:
     dest->col = bspace.destx;
 }   // }}}
 // }}}
-
-int main()
-{
-    init_messages_array();
-    init_interface();
-
-    Position src, dest;
-    get_movement_interactively(&src, &dest);
-
-    close_interface();
-
-    printf("(x,y) from 0 to 7\n");
-    printf("Source: (%d,%d)\n", src.col, src.row);
-    printf("Destination: (%d,%d)\n", dest.col, dest.row);
-
-    return 0;
-}
 

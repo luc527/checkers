@@ -49,7 +49,7 @@ typedef struct {
 
 // util.c {{{
 bool read_position  (Position *);
-void print_position (Position);
+void print_position (char *, Position);
 
 bool is_valid_position    (Position);
 bool is_diagonal          (Position, Position);
@@ -137,6 +137,15 @@ typedef struct {
 } Movoptions_player;
 
 void generate_movoptions_player(Game_state *, Movoptions_player *);
+// }}}
+
+// {{{ interface.c
+void msgwin_print(char *);
+void msgwin_append(char *);
+
+void init_interface();
+void close_interface();
+void get_movement_interactively(Game_state *state, Position *src, Position *dest);
 // }}}
 
 #endif

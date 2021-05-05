@@ -58,9 +58,9 @@ bool read_position(Position *pos)
 }
 
 
-void print_position(Position p)
+void print_position(char *s, Position p)
 {
-    printf("%c%c ", p.col+'A', p.row+'1');
+    sprintf(s, "%c%c ", p.col+'A', p.row+'1');
 }
 
 //

@@ -103,17 +103,7 @@ Movtype get_movtype(Game_state *state, Position src, Position dest)
 
 static void push_piece_option(Movoptions_piece *m, Position p)
 {   //{{{
-    if (m->length < MAXOPTIONS) {
-        m->array[m->length++] = p;
-    } else {
-        // This 'else' should be unreachable because MAXOPTIONS is supposed
-        // to be the largest amount possible of movement options). 
-        // If it isn't, then MAXOPTIONS must be made larger.
-        // This is for debugging.
-        printf("Piece movement choice stack overflow with ");
-        print_position(p);
-        printf("\n");
-    }
+    if (m->length < MAXOPTIONS)  m->array[m->length++] = p;
 }   //}}}
 
 
