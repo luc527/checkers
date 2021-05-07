@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <ncurses.h>
 #include "checkers.h"
 
 // Language used in printing the messages
@@ -16,17 +17,9 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
     Mov_options options;
     generate_mov_options(state, &options);
 
-    // Tell whether a capture must be performed, and using which pieces.
+    // Tell whether a capture must be performed
     if (options.type == CAPTURE)
-    {
-        msgwin_print(getmsg(MUST_CAPTURE_WITH, language));
-        for (int i = 0; i < options.length; i++)
-        {
-            char srcstr[4];  // e.g. {'A', '3', ' ', '\0'}
-            print_position(srcstr, options.array[i].src);
-            msgwin_append(srcstr);
-        }
-    }
+        msgwin_print(getmsg(MUST_CAPTURE, language));
 
     bool valid_move = false;
     while (!valid_move)
@@ -70,19 +63,54 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
 }
 
 
+Movtype get_sequential_capture(Game_state *state, Position src, Position *dest)
+{
+    Dest_options destopts;
+    generate_dest_options(state, src, &destopts, true);
+
+    if (destopts.type == CAPTURE) {
+        // We can't just pass Dest_options to get_movement interactively.
+        // To force the player to perform the sequential capture we must
+        // make up a Mov_options with only one source option, then let
+        // the player choose between the possible captures that can be
+        // performed from there.
+        Mov_options opts;
+        opts.type = CAPTURE;
+        opts.array[0] = destopts;
+        opts.length = 1;
+
+        msgwin_print(getmsg(MUST_PERFORM_SEQUENTIAL_CAPTURE, language));
+        get_movement_interactively(state, &opts, &src, dest);
+    }
+
+    return destopts.type;
+}
+
+
 void game_loop(Game_state *state)
 {
-    do {
+    while (state->situation == ONGOING)
+    {
         Position movsrc, movdest;
 
         Movtype type = get_movement(state, &movsrc, &movdest);
-        perform_movement(state, movsrc, movdest);
+
+        if (type == REGULAR) {
+            perform_movement(state, movsrc, movdest);
+        } else {
+            // keep performing captures if available
+            while (type == CAPTURE) {
+                perform_movement(state, movsrc, movdest);
+                movsrc = movdest;
+                type = get_sequential_capture(state, movsrc, &movdest);
+            }
+        }
 
         upgrade_stones_to_dames(state);
         switch_player(state);
         update_situation(state);
 
-    } while (state->situation == ONGOING);
+    }
 
     if (state->situation == WHITE_WINS)
         msgwin_print(getmsg(WHITE_WINS, language));
@@ -90,6 +118,11 @@ void game_loop(Game_state *state)
         msgwin_print(getmsg(BLACK_WINS, language));
     else  // situation == TIE
         msgwin_print(getmsg(TIE, language));
+
+    // TODO final game situation is not very visible when the game ends,
+    // this below behaves kinda weird
+    refresh_interface();
+    getch();
 }
 
 
@@ -97,12 +130,9 @@ void game_loop(Game_state *state)
 int main(int argc, char **argv)
 {
     for (int i = 1; i < argc; i++) {
-        if (strcmp("--pt", argv[i]) == 0) {
-            language = PT;
-        }
+        if (strcmp("--pt", argv[i]) == 0)  language = PT;
     }
 
-    init_messages_array();
     init_interface();
 
     Game_state state;

@@ -1,6 +1,8 @@
 #include <ncurses.h>
 #include "checkers.h"
 
+extern Language language;
+
 // Board space {{{
 
 /* The board space is where the player will move their cursor and choose what
@@ -152,7 +154,14 @@ void bspace_show(Game_state *state)
     }
 
     // Frame bottom
-    waddstr(bspace.win, "'------------------------'");
+    waddstr(bspace.win, "'------------------------'\n");
+
+    // Show current player
+    waddstr(bspace.win, getmsg(CURRENT_PLAYER, language));
+    Message msg = state->current_player == WHITE
+                 ? WHITE_PLAYER : BLACK_PLAYER;
+    waddstr(bspace.win, getmsg(msg, language));
+    waddch(bspace.win, '\n');
 }   // }}}
 
 /* bspace_move is called to move the player's position in the
@@ -161,11 +170,8 @@ void bspace_show(Game_state *state)
  * The method guarantees that the final position is not out of bounds.
 void bspace_move(int yoffset, int xoffset)
 {
-    int newy = clamp(bspace.playery + yoffset, 0, 7);
-    int newx = clamp(bspace.playerx + xoffset, 0, 7);
-
-    bspace.playery = newy;
-    bspace.playerx = newx;
+    bspace.playery = clamp(bspace.playery + yoffset, 0, 7);
+    bspace.playerx = clamp(bspace.playerx + xoffset, 0, 7);
 }
  */
 
@@ -214,9 +220,6 @@ void bspace_undo_movement()
 // }}}
 
 // Message window {{{
-
-extern Language language;
-
 // TODO regarding msgwin, test whether printing a string too long
 // is handled correctly: what doesn't fit in the current filled up line 
 // is printed in the line below. 
@@ -339,7 +342,7 @@ void get_movement_interactively(
     {
         chtype ch = wgetch(bspace.win);
         switch (ch) {
-        case 10:  // Enter
+        case ' ':
             // goto used because 'break' would break the switch case, not the loop
             if (bspace.chose_src && bspace.chose_dest)  goto done;  
             else  msgwin_print(getmsg(MUST_SELECT_MOVEMENT, language));
@@ -391,6 +394,8 @@ done:
     src->col = bspace.srcx;
     dest->row = bspace.desty;
     dest->col = bspace.destx;
+
+    wclear(msgwin);
 }   // }}}
 // }}}
 

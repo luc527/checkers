@@ -11,9 +11,10 @@ typedef enum {
     SOURCE_PROMPT,
     DESTINATION_PROMPT,
     NOT_AN_OPTION,
-    MUST_CAPTURE_WITH,
+    MUST_CAPTURE,
     MUST_PERFORM_SEQUENTIAL_CAPTURE,
-    WHITE_WINS_MSG,  // <-- needs _MSG because the versions without it are alredy defined
+    WHITE_WINS_MSG, 
+    // ^-- needs _MSG because the versions without it are alredy defined (situations)
     BLACK_WINS_MSG,
     TIE_MSG,
     CURRENT_PLAYER,
@@ -24,8 +25,6 @@ typedef enum {
     INSTRUCTIONS
 } Message;
 #define NMESSAGES 14
-
-void init_messages_array(void);
 
 char *getmsg(Message, Language);
 // }}}
@@ -146,7 +145,9 @@ void msgwin_print(char *);
 void msgwin_append(char *);
 
 void init_interface();
+void refresh_interface();
 void close_interface();
+
 void get_movement_interactively(
         Game_state *,
         Mov_options *,
