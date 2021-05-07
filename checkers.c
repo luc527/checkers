@@ -31,7 +31,7 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
     bool valid_move = false;
     while (!valid_move)
     {
-        get_movement_interactively(state, src, dest);
+        get_movement_interactively(state, &options, src, dest);
 
         // check whether given source is an option;
         // srcindex the index of the given source position in the

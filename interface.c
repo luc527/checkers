@@ -159,7 +159,6 @@ void bspace_show(Game_state *state)
  * board according to the given offset. To move left, for instance,
  * yoffset would be 0 and xoffset would be 1.
  * The method guarantees that the final position is not out of bounds.
- */
 void bspace_move(int yoffset, int xoffset)
 {
     int newy = clamp(bspace.playery + yoffset, 0, 7);
@@ -168,6 +167,7 @@ void bspace_move(int yoffset, int xoffset)
     bspace.playery = newy;
     bspace.playerx = newx;
 }
+ */
 
 /* bspace_select_src() is called to mark the player's current position
  * in the board space as the source of the movement to be performed.
@@ -177,7 +177,8 @@ void bspace_move(int yoffset, int xoffset)
  */
 void bspace_select_src()
 {
-    if (!bspace.chose_dest && !bspace.chose_src) {
+    if (!bspace.chose_dest && !bspace.chose_src)
+    {
         bspace.srcy = bspace.playery;
         bspace.srcx = bspace.playerx ;
         bspace.chose_src = true;
@@ -192,7 +193,8 @@ void bspace_select_src()
  */
 void bspace_select_dest()
 {
-    if (bspace.chose_src && !bspace.chose_dest) {
+    if (bspace.chose_src && !bspace.chose_dest)
+    {
         bspace.desty = bspace.playery;
         bspace.destx = bspace.playerx;
         bspace.chose_dest = true;
@@ -305,45 +307,74 @@ void refresh_interface(Game_state *state)
  * movement, thereby loading the selected positions into the given src and dest
  * position pointers.
  */
-void get_movement_interactively(Game_state *state, Position *src, Position *dest) 
+void get_movement_interactively(
+        Game_state *state,
+        Movoptions_player *playerOpts,
+        Position *src,
+        Position *dest
+) 
 {   //{{{
-    bspace.playery = bspace.playerx = 0;
-    // TODO remember previous position instead
-    // easy with a static variable
-
     bspace_reset();
+
+    int playerOptIndex = 0;
+    Position cursor = playerOpts->array[playerOptIndex].src;
+    bspace.playery = cursor.row;
+    bspace.playerx = cursor.col;
+
+    Movoptions_piece *pieceOpts;
+    int pieceOptIndex = 0;
+
     refresh_interface(state);
 
-    // TODO write somewhere what keys the player has to press
-    // and what they do (e.g. "press wasd to move around, m to
-    // mark the current position as source or destination,
-    // u to undo the movement and ENTER when you're done")
-    while (true) {
+    while (true)
+    {
         chtype ch = wgetch(bspace.win);
-        int yoffset = 0, xoffset = 0;
         switch (ch) {
         case 10:  // Enter
-            if (bspace.chose_src && bspace.chose_dest)
-                goto done;  // 'break' wouldn't break the loop, but the switch case
-            else
-                msgwin_print(getmsg(MUST_SELECT_MOVEMENT, language));
+            // goto because 'break' would break the switch case, not the loop
+            if (bspace.chose_src && bspace.chose_dest)  goto done;  
+            else  msgwin_print(getmsg(MUST_SELECT_MOVEMENT, language));
         case 'u':
             bspace_undo_movement();
             break;
         case 'm':
-            if (!bspace.chose_src)
+            if (!bspace.chose_src) {
                 bspace_select_src();
-            else if (!bspace.chose_dest)
+                pieceOpts = &playerOpts->array[playerOptIndex];
+            } else if (!bspace.chose_dest) {
                 bspace_select_dest();
-            else
+            } else {
                 msgwin_print(getmsg(ALREADY_SELECTED_MOVEMENT, language));
+            }
             break;
-        case 'w': yoffset =  1; break;
-        case 's': yoffset = -1; break;
-        case 'd': xoffset =  1; break;
-        case 'a': xoffset = -1; break;
+        case 'w': case 'd':
+            if (!bspace.chose_src) {
+                ++playerOptIndex;
+                playerOptIndex %= playerOpts->length;
+            } else {
+                ++pieceOptIndex;
+                pieceOptIndex %= pieceOpts->length;
+            }
+            break;
+        case 's': case 'a':
+            if (!bspace.chose_src) {
+                --playerOptIndex;
+                if (playerOptIndex < 0)  playerOptIndex = playerOpts->length-1;
+            } else {
+                --pieceOptIndex;
+                if (pieceOptIndex < 0)  pieceOptIndex = pieceOpts->length-1;
+            }
+            break;
         }
-        bspace_move(yoffset, xoffset);
+
+        if (!bspace.chose_src) {
+            cursor = playerOpts->array[playerOptIndex].src;
+        } else {
+            cursor = pieceOpts->array[pieceOptIndex];
+        }
+        bspace.playery = cursor.row;
+        bspace.playerx = cursor.col;
+
         refresh_interface(state);
     }
 done:

@@ -145,7 +145,12 @@ void msgwin_append(char *);
 
 void init_interface();
 void close_interface();
-void get_movement_interactively(Game_state *state, Position *src, Position *dest);
+void get_movement_interactively(
+        Game_state *state,
+        Movoptions_player *options,
+        Position *src,
+        Position *dest
+);
 // }}}
 
 #endif
