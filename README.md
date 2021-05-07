@@ -2,7 +2,7 @@
 A checkers game programmed in C that runs in the terminal.
 
 Currently working on a more interactive terminal interface using ncurses.
-Also planning to implement a min-max algorithm in the future for the player to play against the computer.
+Also planning to implement a minimax algorithm in the future for the player to play against the computer.
 
 Here's the previous stdin/stdout-based interaction loop.
 Plays checkers correctly, but not as usable.
