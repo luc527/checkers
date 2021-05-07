@@ -6,15 +6,15 @@
 Language language = EN;
 
 
-/* get_movement(state, *src, *dest)
- * stores a valid movement (source and destination positions) from the player in src and dest,
- * returns the type of the movement (REGULAR or CAPTURE -- we ensure it's never INVALID).
- * It also ensures that, if captures are available, the player must perform one of them.
+/* get_movement(state, *src, *dest) stores a valid movement (source and
+ * destination positions) from the player in src and dest, returns the type of
+ * the movement (REGULAR or CAPTURE -- we ensure it's never INVALID).  It also
+ * ensures that, if captures are available, the player must perform one of them.
  */
 Movtype get_movement(Game_state *state, Position *src, Position *dest)
 {
-    Movoptions_player options;
-    generate_movoptions_player(state, &options);
+    Mov_options options;
+    generate_mov_options(state, &options);
 
     // Tell whether a capture must be performed, and using which pieces.
     if (options.type == CAPTURE)
@@ -50,14 +50,14 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
         }
         else
         {
-            Movoptions_piece *destoptions = &options.array[srcindex];
+            Dest_options *destopts = &options.array[srcindex];
 
             // check wheter given destination is an option;
             // set valid_move to true if so,
             // keep valid_move false and warn the player otherwise.
-            for (int i = 0; i < destoptions->length; i++)
+            for (int i = 0; i < destopts->length; i++)
             {
-                Position pos = destoptions->array[i];
+                Position pos = destopts->array[i];
                 if (dest->row == pos.row && dest->col == pos.col)
                     valid_move = true;
             }

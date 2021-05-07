@@ -101,21 +101,30 @@ Movtype get_movtype(Game_state *state, Position src, Position dest)
 }  //}}}
 
 
-static void push_piece_option(Movoptions_piece *m, Position p)
-{   //{{{
-    if (m->length < MAXOPTIONS)  m->array[m->length++] = p;
-}   //}}}
+static void push_dest_option(Dest_options *opts, Position p)
+{
+    if (opts->length < MAXOPTIONS)  opts->array[opts->length++] = p;
+}
 
 
 /**
- * generate_movoptions_piece: generates all movement options for the piece
- * at the given position, storing it at the given Movoptions struct.
- * If there are captures available, this function will already only generate
- * them as options. So why only_captures? only_captures being true just causes
- * no options to be stored when there are only regular movements available. 
+ * generate_dest_options: generates all possible movement destinations taking
+ * the piece at the given position as the source, storing all of it at the
+ * given Dest_options struct. 
+ *
+ * [Note about only_captures: If there are captures available, this function
+ * will already generate only them as options.  So why only_captures, if the
+ * function already only generates captures if required?
+ * only_captures being true causes no options to be stored when there are
+ * only regular movements available. But why would we want that?  Because when a
+ * capture can be performed, it must be performed.  So when we are generating
+ * all movement options and we know there's a capture to be made but there are still
+ * pieces left to be processed, we don't want to consider their possible
+ * regular movements as options.  So we call generate_dest_options for them with
+ * only_captures set to true.]
  */
-void generate_movoptions_piece(Game_state *state, Position src,
-                               Movoptions_piece *options, bool only_captures)
+void generate_dest_options(Game_state *state, Position src,
+                           Dest_options *options, bool only_captures)
 {   //{{{
     options->length = 0;
     options->src    = src;
@@ -151,7 +160,7 @@ void generate_movoptions_piece(Game_state *state, Position src,
                 if (type == CAPTURE)
                 {
                     options->type = CAPTURE;
-                    push_piece_option(options, dest);
+                    push_dest_option(options, dest);
                 }
             }
         }
@@ -167,7 +176,7 @@ void generate_movoptions_piece(Game_state *state, Position src,
                 Position dest = { src.row+vdir, src.col+hdir };
                 Movtype type = get_movtype(state, src, dest);
                 if (type == REGULAR)
-                    push_piece_option(options, dest);
+                    push_dest_option(options, dest);
             }
         }
     }  //}}}
@@ -192,7 +201,7 @@ void generate_movoptions_piece(Game_state *state, Position src,
                     if (type == CAPTURE)
                     {
                         options->type = CAPTURE;
-                        push_piece_option(options, dest);
+                        push_dest_option(options, dest);
                     }
                 }
             }
@@ -215,7 +224,7 @@ void generate_movoptions_piece(Game_state *state, Position src,
                     {
                         Movtype type = get_movtype(state, src, dest);
                         if (type == REGULAR)
-                            push_piece_option(options, dest);
+                            push_dest_option(options, dest);
                     }
 
                 }
@@ -227,14 +236,14 @@ void generate_movoptions_piece(Game_state *state, Position src,
 
 
 /**
- * generate_movoptions_player: Generate all movement options for a player.
- * Rule: a capture must be made when it is possible.
- * Note that generate_movoptions_piece will only consider a single piece,
- * so it may give a regular move as an option even though some other piece in
- * the board can perform a capture. On the othar hand, generate_movoptions_player will
- * ensure that this rule is fulfilled.
+ * generate_mov_options: Generate all movement options for a player.
+ * Rule: a capture must be made when it is possible.  Note that
+ * generate_dest_options will only consider a single piece, so it may give a
+ * regular move as an option even though some other piece in the board can
+ * perform a capture. On the othar hand, generate_mov_options will ensure
+ * that this rule is fulfilled.
  */
-void generate_movoptions_player(Game_state *state, Movoptions_player *player_options)
+void generate_mov_options(Game_state *state, Mov_options *player_options)
 {   //{{{
     player_options->length = 0;
     player_options->type = REGULAR;
@@ -253,7 +262,7 @@ void generate_movoptions_player(Game_state *state, Movoptions_player *player_opt
     // twice.
 
     bool can_capture = false;
-    Movoptions_piece *piece_options;
+    Dest_options *piece_options;
     Position cur;  // Holds current position when iterating
     for (cur.row = 0; cur.row < 8; cur.row++)
     {
@@ -263,15 +272,15 @@ void generate_movoptions_player(Game_state *state, Movoptions_player *player_opt
             // v Found a piece that the player /may/ be able to move
             if (piece_matches_player(piece, player))
             {  
-                // v at each iteration piece_options points to the current Movoptions_piece inside the Movoptions_player array
+                // v at each iteration piece_options points to the current Dest_options inside the Mov_options array
                 // TODO maybe encapsulate this stuff (into get_current_somethingidk) and also the pushing stuff 10 lines below
                 piece_options = &player_options->array[player_options->length];
 
-                generate_movoptions_piece(state, cur, piece_options, false);
+                generate_dest_options(state, cur, piece_options, false);
                 // v This piece /can/, in fact, be moved (there are movement options for it)
                 if (piece_options->length > 0)
                 {  
-                    // Push the movement options for this piece onto the Movoptions_player array
+                    // Push the movement options for this piece onto the Mov_options array
                     player_options->length++;
                     if (piece_options->type == CAPTURE)
                     {
@@ -300,7 +309,7 @@ end_capture_search:
                 Piece piece = get_piece(state, cur);
                 if (piece_matches_player(piece, player))
                 {
-                    generate_movoptions_piece(state, cur, piece_options, true);
+                    generate_dest_options(state, cur, piece_options, true);
                     if (piece_options->type == CAPTURE)
                         player_options->length++;
                 }
@@ -310,7 +319,7 @@ end_capture_search:
     }
     // TODO consider making this function take an 'only_captures' argument for RECURRING:
     // instead of doing goto end_capture_search and stuff,
-    // do if (piece_options->capture) { generate_movoptions_player(state, player_options, true); return; }
+    // do if (piece_options->capture) { generate_mov_options(state, player_options, true); return; }
     // basically recur to do a different thing (generate options but only including captures)
     // that has the same structure (see the similarity between the code above and below end_capture_search)
 

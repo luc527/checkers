@@ -309,20 +309,29 @@ void refresh_interface(Game_state *state)
  */
 void get_movement_interactively(
         Game_state *state,
-        Movoptions_player *playerOpts,
+        Mov_options *mov_opts,
         Position *src,
         Position *dest
 ) 
 {   //{{{
     bspace_reset();
 
-    int playerOptIndex = 0;
-    Position cursor = playerOpts->array[playerOptIndex].src;
+	/* To choose a movement to perform the player first cycles through the
+	 * pieces which he can move.  During this process, mov_opt_index stores the
+	 * index of those pieces in the player options array.  After choosing which
+	 * piece to move, the player cycles through its possible destinations.
+	 * During this process, dest_opt_index stores the index of those positions
+	 * in the dest_opts->array.  Along the whole interaction, 'cursor' is set
+	 * to the option currently selected in the cycle (be it the mov_opts or
+	 * dest_opts cycle).
+	 */
+    int mov_opt_index = 0;
+    Position cursor = mov_opts->array[mov_opt_index].src;
     bspace.playery = cursor.row;
     bspace.playerx = cursor.col;
 
-    Movoptions_piece *pieceOpts;
-    int pieceOptIndex = 0;
+    Dest_options *dest_opts;
+    int dest_opt_index = 0;
 
     refresh_interface(state);
 
@@ -331,7 +340,7 @@ void get_movement_interactively(
         chtype ch = wgetch(bspace.win);
         switch (ch) {
         case 10:  // Enter
-            // goto because 'break' would break the switch case, not the loop
+            // goto used because 'break' would break the switch case, not the loop
             if (bspace.chose_src && bspace.chose_dest)  goto done;  
             else  msgwin_print(getmsg(MUST_SELECT_MOVEMENT, language));
         case 'u':
@@ -340,7 +349,7 @@ void get_movement_interactively(
         case 'm':
             if (!bspace.chose_src) {
                 bspace_select_src();
-                pieceOpts = &playerOpts->array[playerOptIndex];
+                dest_opts = &mov_opts->array[mov_opt_index];
             } else if (!bspace.chose_dest) {
                 bspace_select_dest();
             } else {
@@ -349,28 +358,28 @@ void get_movement_interactively(
             break;
         case 'w': case 'd':
             if (!bspace.chose_src) {
-                ++playerOptIndex;
-                playerOptIndex %= playerOpts->length;
+                ++mov_opt_index;
+                mov_opt_index %= mov_opts->length;
             } else {
-                ++pieceOptIndex;
-                pieceOptIndex %= pieceOpts->length;
+                ++dest_opt_index;
+                dest_opt_index %= dest_opts->length;
             }
             break;
         case 's': case 'a':
             if (!bspace.chose_src) {
-                --playerOptIndex;
-                if (playerOptIndex < 0)  playerOptIndex = playerOpts->length-1;
+                --mov_opt_index;
+                if (mov_opt_index < 0)  mov_opt_index = mov_opts->length-1;
             } else {
-                --pieceOptIndex;
-                if (pieceOptIndex < 0)  pieceOptIndex = pieceOpts->length-1;
+                --dest_opt_index;
+                if (dest_opt_index < 0)  dest_opt_index = dest_opts->length-1;
             }
             break;
         }
 
         if (!bspace.chose_src) {
-            cursor = playerOpts->array[playerOptIndex].src;
+            cursor = mov_opts->array[mov_opt_index].src;
         } else {
-            cursor = pieceOpts->array[pieceOptIndex];
+            cursor = dest_opts->array[dest_opt_index];
         }
         bspace.playery = cursor.row;
         bspace.playerx = cursor.col;
