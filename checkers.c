@@ -135,7 +135,16 @@ int main(int argc, char **argv)
         if (strcmp("--pt", argv[i]) == 0)  language = PT;
     }
 
-    init_interface();
+    initscr();
+
+    if (LINES < 24 || COLS < 80) {
+        printf("Your terminal window is too small (%dx%d)!"
+               " At least 80x24.\n", COLS, LINES);
+        endwin();
+        return 1;
+    }
+
+    setup_interface();
 
     Game_state state;
     game_setup(&state);

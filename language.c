@@ -18,9 +18,9 @@ static char *msgs[NLANGS][NMESSAGES] = {
         [ALREADY_SELECTED_MOVEMENT] = "Voce ja selecionou um movimento. Cancele ou confirme-o.",
         [INSTRUCTIONS] = ""
             "== MOVIMENTO NO TABULEIRO == \n"
-            "a e d para se movimentar pelas opcoes de movimento\n"
+            "a e d para selecionar opcoes de movimento\n"
             "m para marcar origem do movimento\n"
-            "m marcar para selecionar destino do movimento\n"
+            "m marcar para selecionar destino\n"
             "u para desfazer o movimento\n"
             "espaço para confirmar o movimento\n",
     },
@@ -40,7 +40,7 @@ static char *msgs[NLANGS][NMESSAGES] = {
         [ALREADY_SELECTED_MOVEMENT] = "You already selected a movement. Either undo or confirm it.",
         [INSTRUCTIONS] = ""
             "== BOARD MOVEMENT == \n"
-            "a and d to cycle through the movement options\n"
+            "a and d to select movement options\n"
             "m to mark movement source\n"
             "m again to mark movement destination\n"
             "u to undo movement\n"

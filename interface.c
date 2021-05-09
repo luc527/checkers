@@ -84,9 +84,6 @@ bool isblacksquare[BOARD_SIZE][BOARD_SIZE] = {
 // make the square white on terminals with a dark background.
 // TODO display the board corretly on terminals with light AND dark background.
 
-// what if the terminal isn't large enough to display the whole board?
-// TODO check terminal size and if it's not large enough warn user and exit
-
 /* piece_to_char associates each piece with a character that displays it. */
 char piece_to_char[] = {
     [EMPTY]       = ' ',
@@ -269,10 +266,11 @@ void instrwin_init()
 // }}}
 
 // Interface {{{
-/* init_interface sets up ncurses and initializes each window */
-void init_interface()
+/* setup_interface configures ncurses and initializes each window.
+ * It expects initscr() to have already been called.
+ */
+void setup_interface()
 {
-    initscr();
     cbreak();
     noecho();
     curs_set(0);

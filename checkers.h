@@ -146,7 +146,7 @@ void generate_mov_options(Game_state *, Mov_options *);
 void msgwin_print(char *);
 void msgwin_append(char *);
 
-void init_interface();
+void setup_interface();
 void refresh_interface();
 void close_interface();
 
