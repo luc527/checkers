@@ -18,58 +18,13 @@ int clamp(int x, int min, int max)
 	else              return x;
 }
 
-
-//
-// Position reading and writing
-//
-
-// red_position(pos): read a position from the user and store it into pos.
-// Returns whether the user wrote a position in a valid format,
-// but not whether the position actually exists (will return true for
-// R9, for instance). TODO change this...
-bool read_position(Position *pos)
-{
-    // Columns go from A to H
-    // Rows go from 1 to 8
-    // We use the fact that characters are encoded as integers
-    // and sequential characters ('a', 'b', 'c', '1', '2', '3' etc.)
-    // are also ordered sequentially in the caracter set. 
-    
-    bool valid_position = true;
-
-    int col = getchar();
-    if (!isalpha(col))
-        valid_position = false;
-    col = toupper(col);
-    col -= 'A';
-
-    int row = getchar();
-    if (!isdigit(row))
-        valid_position = false;
-    row -= '1';
-
-    pos->row = row;
-    pos->col = col;
-
-    while (getchar() != '\n')
-        ;
-
-    return valid_position;
-}
-
-
-void print_position(char *s, Position p)
-{
-    sprintf(s, "%c%c ", p.col+'A', p.row+'1');
-}
-
 //
 // Predicates
 //
 
 bool is_valid_position(Position p)
-{ return p.row >= 0 && p.row < 8
-      && p.col >= 0 && p.col < 8; }
+{ return p.row >= 0 && p.row < BOARD_SIZE
+      && p.col >= 0 && p.col < BOARD_SIZE; }
 
 bool is_diagonal(Position src, Position dest)
 { return abs(src.row - dest.row) == abs(src.col - dest.col); }

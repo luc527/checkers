@@ -68,7 +68,7 @@ void bspace_init()
  * that tells whether the given position is black or not.
  * In particular, it implements a checkerboard pattern.
  */
-bool isblacksquare[8][8] = {
+bool isblacksquare[BOARD_SIZE][BOARD_SIZE] = {
     { true, false, true, false, true, false, true, false },
     { false, true, false, true, false, true, false, true },
     { true, false, true, false, true, false, true, false },
@@ -110,7 +110,7 @@ void bspace_show(Game_state *state)
     for (int row = 7; row >= 0; row--) {
         waddch(bspace.win, '|');  // Frame left
 
-        for (int col = 0; col < 8; col++) {
+        for (int col = 0; col < BOARD_SIZE; col++) {
             // Left and right padding around the piece
             chtype left  = ' ';
             chtype right = ' ';
@@ -359,7 +359,7 @@ void get_movement_interactively(
                 msgwin_print(getmsg(ALREADY_SELECTED_MOVEMENT, language));
             }
             break;
-        case 'w': case 'd':
+        case 'd':
             if (!bspace.chose_src) {
                 ++mov_opt_index;
                 mov_opt_index %= mov_opts->length;
@@ -368,7 +368,7 @@ void get_movement_interactively(
                 dest_opt_index %= dest_opts->length;
             }
             break;
-        case 's': case 'a':
+        case 'a':
             if (!bspace.chose_src) {
                 --mov_opt_index;
                 if (mov_opt_index < 0)  mov_opt_index = mov_opts->length-1;

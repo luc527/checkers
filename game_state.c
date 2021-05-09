@@ -16,7 +16,7 @@ void set_piece(Game_state *state, Position pos, Piece piece)
 }
 
 // game_setup reads this to initailize the board
-char initial_board[8][9] = {
+char initial_board[BOARD_SIZE][BOARD_SIZE+1] = {
     "o o o o ",  // white pieces
     " o o o o",
     "o o o o ",
@@ -30,8 +30,8 @@ char initial_board[8][9] = {
 void game_setup(Game_state *state)
 { 
     Position p;
-    for (p.row = 0; p.row < 8; p.row++)
-        for (p.col = 0; p.col < 8; p.col++)
+    for (p.row = 0; p.row < BOARD_SIZE; p.row++)
+        for (p.col = 0; p.col < BOARD_SIZE; p.col++)
             switch (initial_board[p.row][p.col]) {
                 case ' ': set_piece(state, p, EMPTY); break;
                 case 'o': set_piece(state, p, WHITE_STONE); break;
@@ -49,9 +49,9 @@ void update_situation(Game_state *state)
     int black_piece_count = 0;
 
     Position p;
-    for (p.row = 0; p.row < 8; p.row++)
+    for (p.row = 0; p.row < BOARD_SIZE; p.row++)
     {
-        for (p.col = 0; p.col < 8; p.col++)
+        for (p.col = 0; p.col < BOARD_SIZE; p.col++)
         {
             Piece piece = get_piece(state, p);
             /**/ if (is_white(piece)) white_piece_count++;

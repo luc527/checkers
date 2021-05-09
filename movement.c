@@ -263,12 +263,16 @@ void generate_mov_options(Game_state *state, Mov_options *player_options)
 
     bool can_capture = false;
     Dest_options *piece_options;
-    Position cur;  // Holds current position when iterating
-    for (cur.row = 0; cur.row < 8; cur.row++)
+    Position pos;  // Holds current position when iterating
+
+    // Outer for iterates through columns because then the options are ordered
+    // column by column, which is more convenient for when the player cycles
+    // through them.
+    for (pos.col = 0; pos.col < BOARD_SIZE; pos.col++)
     {
-        for (cur.col = 0; cur.col < 8; cur.col++)
+        for (pos.row = 0; pos.row < BOARD_SIZE; pos.row++)
         {
-            Piece piece = get_piece(state, cur);
+            Piece piece = get_piece(state, pos);
             // v Found a piece that the player /may/ be able to move
             if (piece_matches_player(piece, player))
             {  
@@ -276,7 +280,7 @@ void generate_mov_options(Game_state *state, Mov_options *player_options)
                 // TODO maybe encapsulate this stuff (into get_current_somethingidk) and also the pushing stuff 10 lines below
                 piece_options = &player_options->array[player_options->length];
 
-                generate_dest_options(state, cur, piece_options, false);
+                generate_dest_options(state, pos, piece_options, false);
                 // v This piece /can/, in fact, be moved (there are movement options for it)
                 if (piece_options->length > 0)
                 {  
@@ -301,15 +305,15 @@ end_capture_search:
     if (can_capture)
     {
         player_options->length = 0;
-        for (cur.row = 0; cur.row < 8; cur.row++)
+        for (pos.col = 0; pos.col < BOARD_SIZE; pos.col++)
         {
-            for (cur.col = 0; cur.col < 8; cur.col++)
+            for (pos.row = 0; pos.row < BOARD_SIZE; pos.row++)
             {
                 piece_options = &player_options->array[player_options->length];
-                Piece piece = get_piece(state, cur);
+                Piece piece = get_piece(state, pos);
                 if (piece_matches_player(piece, player))
                 {
-                    generate_dest_options(state, cur, piece_options, true);
+                    generate_dest_options(state, pos, piece_options, true);
                     if (piece_options->type == CAPTURE)
                         player_options->length++;
                 }

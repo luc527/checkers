@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 
+#define BOARD_SIZE 8
+
 // Languages {{{
 typedef enum { PT, EN } Language;
 #define NLANGS 2
@@ -66,7 +68,7 @@ int clamp(int, int min, int max);
 
 // game_state.c {{{
 typedef struct {
-    Piece board[8][8];
+    Piece board[BOARD_SIZE][BOARD_SIZE];
     Color current_player;
     Situation situation;
 } Game_state;

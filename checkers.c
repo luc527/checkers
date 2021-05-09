@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include <ncurses.h>
 #include "checkers.h"
 
@@ -109,20 +110,21 @@ void game_loop(Game_state *state)
         upgrade_stones_to_dames(state);
         switch_player(state);
         update_situation(state);
-
     }
 
+    /*
     if (state->situation == WHITE_WINS)
-        msgwin_print(getmsg(WHITE_WINS, language));
+        msgwin_print(getmsg(WHITE_WINS_MSG, language));
     else if (state->situation == BLACK_WINS)
-        msgwin_print(getmsg(BLACK_WINS, language));
+        msgwin_print(getmsg(BLACK_WINS_MSG, language));
     else  // situation == TIE
-        msgwin_print(getmsg(TIE, language));
+        msgwin_print(getmsg(TIE_MSG, language));
+    */
+    
+    endwin();
+    printf("Test");
 
-    // TODO final game situation is not very visible when the game ends,
-    // this below behaves kinda weird
-    refresh_interface();
-    getch();
+    sleep(10);
 }
 
 
