@@ -1,17 +1,20 @@
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 #include <ncurses.h>
 #include "checkers.h"
+
+#include <unistd.h>
+// ^ for sleep() when testing how the game ends, remove when that's all sorted out
 
 // Language used in printing the messages
 Language language = EN;
 
 
-/* get_movement(state, *src, *dest) stores a valid movement (source and
- * destination positions) from the player in src and dest, returns the type of
- * the movement (REGULAR or CAPTURE -- we ensure it's never INVALID).  It also
- * ensures that, if captures are available, the player must perform one of them.
+/* get_movement sets up the interactive board for the player to perform a
+ * movement (with get_movement_interactively), stores the given movement in
+ * 'src' and 'dest', and returns the movement type (CAPTURE or REGULAR -- never
+ * INVALID because get_movement_interactively only allows the player to select
+ * movements from the given options).
  */
 Movtype get_movement(Game_state *state, Position *src, Position *dest)
 {
@@ -22,6 +25,19 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
     if (options.type == CAPTURE)
         msgwin_print(getmsg(MUST_CAPTURE, language));
 
+    // TODO this movement validation might be unnecessary because now
+    // get_movement_interactively locks the player into performing only
+    // movements from the options -- it's impossible (except in the case of a
+    // bug...) for an invalid movement to be selected and retrieved from that
+    // function.  However, it's probably nice to keep it and use it to verify
+    // that the program is working correctly -- then instead of warning the user
+    // that the options is invalid it should show an error message.
+    // So if the decision is taken to keep the movement validation, leave a
+    // comment explaining the situaton (it used to be that in the board
+    // interaction the player could select any movement and we had to validate
+    // it, but since we lock the player into selecting only the options this is
+    // technically unnecessary, but we kept it since it could detect and treat
+    // errors in the board interaction)
     bool valid_move = false;
     while (!valid_move)
     {
@@ -46,9 +62,6 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
         {
             Dest_options *destopts = &options.array[srcindex];
 
-            // check wheter given destination is an option;
-            // set valid_move to true if so,
-            // keep valid_move false and warn the player otherwise.
             for (int i = 0; i < destopts->length; i++)
             {
                 Position pos = destopts->array[i];
@@ -64,17 +77,26 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
 }
 
 
+/* get_sequential_capture: if the player can perform a capture from 'src', the
+ * game will set up the interactive board for the player to peform the capture
+ * (or to choose between different possible captures if there's more than one),
+ * and then store it in 'dest'.
+ * If no captures are available, nothing is done. 
+ * It returns CAPTURE if there were captures available, REGULAR otherwise.
+ *
+ * The return value is used to decide whether or not to call
+ * get_sequential_capture again: if CAPTURE was returned it means the player
+ * can perform even more sequential captures, so call it again; otherwise stop
+ * calling since no more sequential captures are available.
+ */
 Movtype get_sequential_capture(Game_state *state, Position src, Position *dest)
 {
     Dest_options destopts;
     generate_dest_options(state, src, &destopts, true);
 
     if (destopts.type == CAPTURE) {
-        // We can't just pass Dest_options to get_movement interactively.
-        // To force the player to perform the sequential capture we must
-        // make up a Mov_options with only one source option, then let
-        // the player choose between the possible captures that can be
-        // performed from there.
+        // get_movement_interactively takes a Mov_options, not a Dest_options,
+        // so we must create a Mov_options with only the capture(s) as option(s).  
         Mov_options opts;
         opts.type = CAPTURE;
         opts.array[0] = destopts;
@@ -88,18 +110,17 @@ Movtype get_sequential_capture(Game_state *state, Position src, Position *dest)
 }
 
 
+/* game_loop will play the game with the given Game_state until the end. */
 void game_loop(Game_state *state)
 {
     while (state->situation == ONGOING)
     {
         Position movsrc, movdest;
-
         Movtype type = get_movement(state, &movsrc, &movdest);
-
         if (type == REGULAR) {
             perform_movement(state, movsrc, movdest);
         } else {
-            // keep performing captures if available
+            // keep performing captures with the same piece if available
             while (type == CAPTURE) {
                 perform_movement(state, movsrc, movdest);
                 movsrc = movdest;
@@ -112,7 +133,7 @@ void game_loop(Game_state *state)
         update_situation(state);
     }
 
-    /*
+    /* FIXME segmentation fault somewhere here. maybe fixed by adding the _MSG though
     if (state->situation == WHITE_WINS)
         msgwin_print(getmsg(WHITE_WINS_MSG, language));
     else if (state->situation == BLACK_WINS)
