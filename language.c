@@ -21,7 +21,7 @@ static char *msgs[NLANGS][NMESSAGES] = {
             "a e d para selecionar opcoes de movimento\n"
             "m para marcar origem do movimento\n"
             "m marcar para selecionar destino\n"
-            "u para desfazer o movimento\n"
+            "u para desmarcar\n"
             "espaço para confirmar o movimento\n",
     },
     [EN] = {
@@ -43,7 +43,7 @@ static char *msgs[NLANGS][NMESSAGES] = {
             "a and d to select movement options\n"
             "m to mark movement source\n"
             "m again to mark movement destination\n"
-            "u to undo movement\n"
+            "u to unmark\n"
             "SPACE to confirm movement\n",
     },
 };
