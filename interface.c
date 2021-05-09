@@ -353,6 +353,7 @@ void get_movement_interactively(
             if (!bspace.chose_src) {
                 bspace_select_src();
                 dest_opts = &mov_opts->array[mov_opt_index];
+                dest_opt_index = 0;
             } else if (!bspace.chose_dest) {
                 bspace_select_dest();
             } else {
