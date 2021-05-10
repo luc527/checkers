@@ -4,7 +4,7 @@
 #include "checkers.h"
 
 #include <unistd.h>
-// ^ for sleep() when testing how the game ends, remove when that's all sorted out
+// ^ for sleep() when testing how the game ends, TODO remove when that's all sorted out
 
 // Language used in printing the messages
 Language language = EN;
@@ -29,9 +29,12 @@ Movtype get_movement(Game_state *state, Position *src, Position *dest)
     // get_movement_interactively locks the player into performing only
     // movements from the options -- it's impossible (except in the case of a
     // bug...) for an invalid movement to be selected and retrieved from that
-    // function.  However, it's probably nice to keep it and use it to verify
+    // function.
+    //
+    // However, it's probably nice to keep it and use it to verify
     // that the program is working correctly -- then instead of warning the user
     // that the options is invalid it should show an error message.
+    //
     // So if the decision is taken to keep the movement validation, leave a
     // comment explaining the situaton (it used to be that in the board
     // interaction the player could select any movement and we had to validate
@@ -133,7 +136,7 @@ void game_loop(Game_state *state)
         update_situation(state);
     }
 
-    /* FIXME segmentation fault somewhere here. maybe fixed by adding the _MSG though
+    /* FIXME segmentation fault somewhere here. maybe already fixed by adding the _MSG though
     if (state->situation == WHITE_WINS)
         msgwin_print(getmsg(WHITE_WINS_MSG, language));
     else if (state->situation == BLACK_WINS)

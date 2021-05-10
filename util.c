@@ -10,12 +10,11 @@ int abs(int x)
 }
 
 
-// Clamps x between min <= x <= max
 int clamp(int x, int min, int max)
 {
-	/**/ if (x < min) return min;
-	else if (x > max) return max;
-	else              return x;
+	if      (x < min)  return min;
+	else if (x > max)  return max;
+	else               return x;
 }
 
 //
@@ -28,6 +27,8 @@ bool is_valid_position(Position p)
 
 bool is_diagonal(Position src, Position dest)
 { return abs(src.row - dest.row) == abs(src.col - dest.col); }
+
+// Consider storing these pieces of information in bits of the piece integer?
 
 bool is_white(Piece piece)
 { return piece == WHITE_STONE || piece == WHITE_DAME; }

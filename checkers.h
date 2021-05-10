@@ -9,6 +9,7 @@
 typedef enum { PT, EN } Language;
 #define NLANGS 2
 
+// TODO delete unused messages
 typedef enum {
     SOURCE_PROMPT,
     DESTINATION_PROMPT,
@@ -90,31 +91,30 @@ void update_situation        (Game_state *);
 Movtype get_movtype (Game_state *, Position from, Position to);
 
 #define MAXOPTIONS 13
+/* MAXOPTIONS is the upper bound to how many movement options any piece has.
 /* A /stone/ will have at most four options of movement (captures in all four
  * directions), or two if it can't capture, but a /dame/ can potentially move to
- * every square in its four diagonals, which are 13 in total (count the X's below).
- * So MAXOPTIONS in the upper bound to how many options any piece can perform.
- * | 12345678|
- * |1       X|
- * |2X     X |
- * |3 X   X  |
- * |4  X X   |
- * |5   @    |
- * |6  X X   |
- * |7 X   X  |
- * |8X     X |
+ * every square in its four diagonals, the amount of which seems to be 13 in total
+ * (count the X's below).
+ *   12345678
+ * 1|       X|
+ * 2|X     X |
+ * 3| X   X  |
+ * 4|  X X   |
+ * 5|   @    |
+ * 6|  X X   |
+ * 7| X   X  |
+ * 8|X     X |
  */
 
-/* Dest_options groups the data that informs what are the
- * destination options for a piece at position 'src'.
- * It can have an arbitrary (within [0..MAXOPTIONS]) number of
- * options, so we implement a variable-length array (with a limit of
- * MAXOPTIONS elements) with a regular array and a 'length' component.
- * The Movtype component type tells whether the options are all regular
- * movements (so type = REGULAR) or all captures (type = CAPTURE).
- * It cannot have regular and capture movements at the same time,
- * since it's required that if captures are available they must be made.
- */
+/* Dest_options groups the data that informs what are the destination options
+ * for a piece at position 'src'.  It can have a variable (within
+ * [0..MAXOPTIONS]) number of options, so we implement a variable-length array
+ * (with a limit of MAXOPTIONS elements) with a regular array and a 'length'
+ * component.  The Movtype component 'type' tells whether the options are all
+ * regular movements (so type = REGULAR) or all captures (type = CAPTURE).  It
+ * cannot have regular and capture movements at the same time, since it's
+ * required that if captures are available they must be made. */
 typedef struct {
     Position src;
     Position array[MAXOPTIONS];
@@ -126,13 +126,12 @@ void generate_dest_options(Game_state *, Position, Dest_options *, bool only_cap
 
 #define NUMPIECES 12
 
-// Mov_options groups the data that informs all movement options
-// a player has. That is, it lists all the Dest_options for each piece.
-// Again a variable-length array with an upper-bound (NUMPIECES) is
-// implemented with a regular array and a 'length' component; and again
-// the Movtype component type tells whether the movements are all captures
-// (since when there are captures no regular moves can be made) or all
-// regular moves.
+/* Mov_options groups the data that informs all movement options a player has.
+ * That is, it lists all the Dest_options for each piece.  Again a
+ * variable-length array with an upper-bound (NUMPIECES) is implemented with a
+ * regular array and a 'length' component; and again the Movtype component type
+ * tells whether the movements are all captures (since when there are captures
+ * no regular moves can be made) or all regular moves. */
 typedef struct {
     Dest_options array[NUMPIECES];
     int length;
@@ -144,7 +143,6 @@ void generate_mov_options(Game_state *, Mov_options *);
 
 // {{{ interface.c
 void msgwin_print(char *);
-void msgwin_append(char *);
 
 void setup_interface();
 void refresh_interface();

@@ -42,6 +42,10 @@ typedef struct {
  * operate on /the/ board space, which is stored in the bspace variable.
  */
 Board_space bspace;
+/* TODO consider making the functions actually take a Board_space*,
+ * but also provide macros that expand to calls of those functions with /the/
+ * board space as parameter?
+ */
 
 /* bspace_reset clears the board space movement information
  * but doesn't do anything with the window.
@@ -111,14 +115,14 @@ void bspace_show(Game_state *state)
             // Left and right padding around the piece
             chtype left  = ' ';
             chtype right = ' ';
-            /* They also indicates player (with [] around), source (with < at the left)
+            /* The padding also indicates player (with [] around), source (with < at the left)
              * and destination (with > at the left) positions.
              */
-            /* [NOTE: Alternative to < and > symbols:
+            /* [TODO consider alternative to < and > symbols:
              * language-dependent mnemonics defined in language.c
              * (like 's' for source and 'd' for destination)]
              */
-            /* The order of the following three ifs matters with respect to the padding:
+            /* The /order/ of the following IFs matters with respect to the padding:
              * its effect is that, on the same square,
              * player cursor [] overwrites destination symbol > overwrites source symbol <.
              */
@@ -155,22 +159,12 @@ void bspace_show(Game_state *state)
 
     // Show current player
     waddstr(bspace.win, getmsg(CURRENT_PLAYER, language));
-    Message msg = state->current_player == WHITE
-                 ? WHITE_PLAYER : BLACK_PLAYER;
-    waddstr(bspace.win, getmsg(msg, language));
+    Message cur_player_msg = state->current_player == WHITE
+                          ? WHITE_PLAYER : BLACK_PLAYER;
+    waddstr(bspace.win, getmsg(cur_player_msg, language));
     waddch(bspace.win, '\n');
 }   // }}}
 
-/* bspace_move is called to move the player's position in the
- * board according to the given offset. To move left, for instance,
- * yoffset would be 0 and xoffset would be 1.
- * The method guarantees that the final position is not out of bounds.
-void bspace_move(int yoffset, int xoffset)
-{
-    bspace.playery = clamp(bspace.playery + yoffset, 0, 7);
-    bspace.playerx = clamp(bspace.playerx + xoffset, 0, 7);
-}
- */
 
 /* bspace_select_src() is called to mark the player's current position
  * in the board space as the source of the movement to be performed.
@@ -211,16 +205,12 @@ void bspace_select_dest()
  */
 void bspace_undo_movement()
 {
-    if (bspace.chose_dest) bspace.chose_dest = false;
-    else bspace.chose_src = false;
+    if (bspace.chose_dest)  bspace.chose_dest = false;
+    else  bspace.chose_src = false;
 }
 // }}}
 
 // Message window {{{
-// TODO regarding msgwin, test whether printing a string too long
-// is handled correctly: what doesn't fit in the current filled up line 
-// is printed in the line below. 
-
 /* msgwin is the message window where messages will be displayed to the user,
  * warning them when he does something wrong, telling him if he 
  * must perform a capture etc.
@@ -242,12 +232,6 @@ void msgwin_print(char *msg)
     wmove(msgwin, 0, 0);
     waddstr(msgwin, msg);
 }
-
-/* msgwin_append appends the given string to the existing message. */
-void msgwin_append(char *s)
-{
-    waddstr(msgwin, s);
-}
 // }}}
 
 // Instructions and controls window {{{
@@ -267,7 +251,7 @@ void instrwin_init()
 
 // Interface {{{
 /* setup_interface configures ncurses and initializes each window.
- * It expects initscr() to have already been called.
+ * It /expects initscr()/ to have already been called.
  */
 void setup_interface()
 {
@@ -279,7 +263,8 @@ void setup_interface()
     bspace_init();
 }
 
-/* close_interface deletes the windows and ends ncurses */
+/* close_interface deletes the windows and ends ncurses;
+ * it /expects init_interface()/ to have been called previously. */
 void close_interface()
 {
     delwin(msgwin);
@@ -292,9 +277,8 @@ void close_interface()
 void refresh_interface(Game_state *state)
 {
     /* This is *the correct order* in which to call these functions.
-     * Under other orders only a second call to refresh_interface
-     * would display the board for the first time.
-     */
+     * [Not sure precisely why; with other orders only a second call to
+     * refresh_interface would display the board for the first time.] */
     bspace_show(state);
     refresh();
     wrefresh(bspace.win);
@@ -306,8 +290,7 @@ void refresh_interface(Game_state *state)
 /* get_movement_interactively is the interaction loop where the player can move
  * around the board, select source and destination positions, and confirm the
  * movement, thereby loading the selected positions into the given src and dest
- * position pointers.
- */
+ * position pointers.  */
 void get_movement_interactively(
         Game_state *state,
         Mov_options *mov_opts,
@@ -324,8 +307,7 @@ void get_movement_interactively(
 	 * During this process, dest_opt_index stores the index of those positions
 	 * in the dest_opts->array.  Along the whole interaction, 'cursor' is set
 	 * to the option currently selected in the cycle (be it the mov_opts or
-	 * dest_opts cycle).
-	 */
+	 * dest_opts cycle).  */
     int mov_opt_index = 0;
     Position cursor = mov_opts->array[mov_opt_index].src;
     bspace.playery = cursor.row;

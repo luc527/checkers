@@ -2,8 +2,7 @@
 #include "checkers.h"
 
 
-/**
- * get_movtype: takes in a game state and a movement (source and destination),
+/* get_movtype: takes in a game state and a movement (source and destination),
  * and returns whether the movement is INVALID (cannot be performed),
  * CAPTURE or REGULAR (no captures made).
  */
@@ -14,21 +13,17 @@ Movtype get_movtype(Game_state *state, Position src, Position dest)
     //
     int valid_positions = is_valid_position(src) && is_valid_position(dest)
                        && is_diagonal(src, dest);
-    if (!valid_positions)
-        return INVALID;
+    if (!valid_positions)  return INVALID;
 
     Piece atsrc  = get_piece(state, src);
     Piece atdest = get_piece(state, dest);
-    if (is_empty(atsrc) || !is_empty(atdest))
-        return INVALID;
+    if (is_empty(atsrc) || !is_empty(atdest))  return INVALID;
 
     Color player = state->current_player;
-    if (!piece_matches_player(atsrc, player))
-        return INVALID;
+    if (!piece_matches_player(atsrc, player))  return INVALID;
 
     int distance = abs(dest.row - src.row);
-    if (distance == 0)
-        return INVALID;
+    if (distance == 0)  return INVALID;
 
     // hdir and vdir describe the direction of the movement
     // hdir (horizontal) tells if it goes right (1) or left (-1)
@@ -52,9 +47,9 @@ Movtype get_movtype(Game_state *state, Position src, Position dest)
         {
             // Possibly a capture
             Position mid = { src.row + vdir, src.col + hdir };
-            int mid_piece = get_piece(state, mid);
-            bool can_capture = (mid_piece != EMPTY)
-                            && (!same_color(atsrc, mid_piece));
+            int atmid = get_piece(state, mid);
+            bool can_capture = (atmid != EMPTY)
+                            && (!same_color(atsrc, atmid));
             return can_capture ? CAPTURE : INVALID;
         }
         else
@@ -79,16 +74,20 @@ Movtype get_movtype(Game_state *state, Position src, Position dest)
             Position mid = { src.row + vdir, src.col + hdir };
             for (int i = 0; i < distance; i++)
             {
-                int mid_piece = get_piece(state, mid);
-                if (mid_piece != EMPTY)
+                int atmid = get_piece(state, mid);
+                if (atmid != EMPTY)
                 {
-                    // Can't move over pieces of the same color (type is INVALID);
-                    // capture when moving over pieces of different color (type is CAPTURE).
-                    if (same_color(atsrc, mid_piece)) {
+                    // Can't move over pieces of the same color;
+                    // moving over pieces of different colors means it's a capture.
+                    if (same_color(atsrc, atmid)) {
                         type = INVALID;
                         break;
+                        // We break right away because otherwise a piece that comes later
+                        // that has the opposite color would set 'type' to CAPTURE
                     } else {
                         type = CAPTURE;
+                        // But we don't break here because there might be a piece of
+                        // opposite color in the way later
                     }
                 }
                 mid.row += vdir;
@@ -107,8 +106,7 @@ static void push_dest_option(Dest_options *opts, Position p)
 }
 
 
-/**
- * generate_dest_options: generates all possible movement destinations taking
+/* generate_dest_options: generates all possible movement destinations taking
  * the piece at the given position as the source, storing all of it at the
  * given Dest_options struct. 
  *
@@ -132,8 +130,9 @@ void generate_dest_options(Game_state *state, Position src,
 
     Piece atsrc  = get_piece(state, src);
     int directions[] = { -1, 1 };
+    // TODO int diagonals[] = {{-1,1},{-1,-1},etc.} even though /not all/ of the code below can use it?
 
-    // We iterate through all possible directions a piece can go doing
+    // We iterate through all possible diagonals a piece can go doing
     // for (i=0..2) vdir = directions[i]
     //   for (j=0..2) hdir = directions[j]
     //     ...
@@ -148,11 +147,11 @@ void generate_dest_options(Game_state *state, Position src,
     else if (is_stone(atsrc))
     {   // {{{
         // First check for captures (in all squares with distance 2),
-        // and set a bool telling whether a capture is an option
-        for (int i=0; i<2; i++)
+        // and set a bool telling whether one was found
+        for (int i = 0; i < 2; i++)
         {
             int vdir = directions[i];
-            for (int j=0; j<2; j++)
+            for (int j = 0; j < 2; j++)
             {
                 int hdir = directions[j];
                 Position dest = { src.row + 2*vdir, src.col + 2*hdir };
@@ -165,12 +164,11 @@ void generate_dest_options(Game_state *state, Position src,
             }
         }
         // Now check for regular moves only if no captures were available
-        // (because captures are mandatory -- we can only push regular movements
-        // as options under this condition)
+        // (captures are mandatory) or if only_captures doesn't restrict it
         if (!only_captures && options->type == REGULAR)
         {
             int vdir = is_white(atsrc) ? 1 : -1;
-            for (int i=0; i<2; i++)
+            for (int i = 0; i < 2; i++)
             {
                 int hdir = directions[i];
                 Position dest = { src.row+vdir, src.col+hdir };
@@ -186,10 +184,10 @@ void generate_dest_options(Game_state *state, Position src,
     else
     {   // {{{
         // First check for captures, and set a bool telling whether a capture is an option
-        for (int i=0; i<2; i++)
+        for (int i = 0; i < 2; i++)
         {
             int vdir = directions[i];
-            for (int j=0; j<2; j++)
+            for (int j = 0; j < 2; j++)
             {
                 int hdir = directions[j];
                 Position dest;
@@ -207,14 +205,13 @@ void generate_dest_options(Game_state *state, Position src,
             }
         }
         // Now check for regular moves only if no captures were available
-        // (because captures are mandatory, so we can only push regular movements
-        // as options under this condition)
+        // (captures are mandatory) or only_captures doesn't restrict it
         if (!only_captures && options->type == REGULAR)
         {
-            for (int i=0; i<2; i++)
+            for (int i = 0; i < 2; i++)
             {
                 int vdir = directions[i];
-                for (int j=0; j<2; j++)
+                for (int j = 0; j < 2; j++)
                 {
                     int hdir = directions[j];
                     Position dest;
@@ -243,10 +240,10 @@ void generate_dest_options(Game_state *state, Position src,
  * perform a capture. On the othar hand, generate_mov_options will ensure
  * that this rule is fulfilled.
  */
-void generate_mov_options(Game_state *state, Mov_options *player_options)
+void generate_mov_options(Game_state *state, Mov_options *mov_options)
 {   //{{{
-    player_options->length = 0;
-    player_options->type = REGULAR;
+    mov_options->length = 0;
+    mov_options->type = REGULAR;
     Color player = state->current_player;
 
     // Generate all movement options for the player.
@@ -262,7 +259,7 @@ void generate_mov_options(Game_state *state, Mov_options *player_options)
     // twice.
 
     bool can_capture = false;
-    Dest_options *piece_options;
+    Dest_options *dest_options;
     Position pos;  // Holds current position when iterating
 
     // Outer for iterates through columns because then the options are ordered
@@ -273,49 +270,56 @@ void generate_mov_options(Game_state *state, Mov_options *player_options)
         for (pos.row = 0; pos.row < BOARD_SIZE; pos.row++)
         {
             Piece piece = get_piece(state, pos);
-            // v Found a piece that the player /may/ be able to move
+            // Player /might/ be able to move this piece
             if (piece_matches_player(piece, player))
             {  
-                // v at each iteration piece_options points to the current Dest_options inside the Mov_options array
-                // TODO maybe encapsulate this stuff (into get_current_somethingidk) and also the pushing stuff 10 lines below
-                piece_options = &player_options->array[player_options->length];
-
-                generate_dest_options(state, pos, piece_options, false);
-                // v This piece /can/, in fact, be moved (there are movement options for it)
-                if (piece_options->length > 0)
+                // dest_options points to next available space in mov_options
+                // (the Mov_options structure already has all the space we need
+                // for storing Dest_options structures, so we just point to
+                // each array location in it)
+                dest_options = &mov_options->array[mov_options->length];
+                generate_dest_options(state, pos, dest_options, false);
+                // This piece /can/ be moved
+                if (dest_options->length > 0)
                 {  
-                    // Push the movement options for this piece onto the Mov_options array
-                    player_options->length++;
-                    if (piece_options->type == CAPTURE)
+                    // Effectuate dest_options insertion by increasing the 'length' component
+                    // (When dest_options->length == 0, which means the piece can't really be moved,
+                    // not increasting the 'length' component will cause the next iteration to overwrite
+                    // the mov_options array location where the current dest_options was generated.)
+                    mov_options->length++;
+                    // But if it's a capture, then we want /only/ the captures...
+                    if (dest_options->type == CAPTURE)
                     {
                         can_capture = true;
-                        player_options->type = CAPTURE;
-                        goto end_capture_search;
+                        mov_options->type = CAPTURE;
+                        goto end_regular_search;
                     }
                 }
             }  // end if
 
         }  // end for
     }
-end_capture_search:
+end_regular_search:
 
-    // If no capture was available, we don't need to do anything else,
-    // the code above will generate regular movements as options just fine.
-    // Otherwise, we need to re-generate the options to only include captures.
+    // At this point, if no capture was available, we don't need to do anything
+    // else, the code above will generate regular movements as options just
+    // fine.  But if there /were/ captures available, we need to re-generate
+    // the options to only include captures. [The code below follows
+    // the same logic as above].
     if (can_capture)
     {
-        player_options->length = 0;
+        mov_options->length = 0;
         for (pos.col = 0; pos.col < BOARD_SIZE; pos.col++)
         {
             for (pos.row = 0; pos.row < BOARD_SIZE; pos.row++)
             {
-                piece_options = &player_options->array[player_options->length];
+                dest_options = &mov_options->array[mov_options->length];
                 Piece piece = get_piece(state, pos);
                 if (piece_matches_player(piece, player))
                 {
-                    generate_dest_options(state, pos, piece_options, true);
-                    if (piece_options->type == CAPTURE)
-                        player_options->length++;
+                    generate_dest_options(state, pos, dest_options, true);
+                    if (dest_options->type == CAPTURE)
+                        mov_options->length++;
                 }
             }
 
@@ -323,7 +327,7 @@ end_capture_search:
     }
     // TODO consider making this function take an 'only_captures' argument for RECURRING:
     // instead of doing goto end_capture_search and stuff,
-    // do if (piece_options->capture) { generate_mov_options(state, player_options, true); return; }
+    // do if (dest_options->capture) { generate_mov_options(state, mov_options, true); return; }
     // basically recur to do a different thing (generate options but only including captures)
     // that has the same structure (see the similarity between the code above and below end_capture_search)
 
