@@ -303,9 +303,12 @@ void get_movement_interactively(
 	 * index of those pieces in the player options array.  After choosing which
 	 * piece to move, the player cycles through its possible destinations.
 	 * During this process, dest_opt_index stores the index of those positions
-	 * in the dest_opts->array. */
+	 * in the dest_opts->array. 
+     * Of course, the player also needs to see what actual squares in the board
+     * those indexes refer to.  Thus, the Position the index actually refers
+     * to is copied into the 'cursor' variable, whose coordinates are then
+     * copied into the bspace's playery and playerx components. */
     int mov_opt_index = 0;
-    // cursor: Position of the option currently selected in the cycle
     Position cursor = mov_opts->array[mov_opt_index].src;  
     bspace.playery = cursor.row;
     bspace.playerx = cursor.col;
