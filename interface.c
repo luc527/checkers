@@ -62,8 +62,6 @@ void bspace_reset()
 /* bspace_init is like the constructor.  */
 void bspace_init()
 {
-    // For now it'll occupy the whole screen
-    // Change when actually adding other things to the interface
     bspace.win = newwin(LINES/2, COLS/2, 0, 0);
     bspace_reset();
 }
@@ -314,7 +312,7 @@ void get_movement_interactively(
     bspace.playerx = cursor.col;
 
     Dest_options *dest_opts;
-    int dest_opt_index = 0;
+    int dest_opt_index;
 
     refresh_interface(state);
 
@@ -324,8 +322,11 @@ void get_movement_interactively(
         switch (ch) {
         case ' ':
             // goto used because 'break' would break the switch case, not the loop
-            if (bspace.chose_src && bspace.chose_dest)  goto done;  
-            else  msgwin_print(getmsg(MUST_SELECT_MOVEMENT, language));
+            if (bspace.chose_src && bspace.chose_dest) {
+                goto done;  
+            } else {
+                msgwin_print(getmsg(MUST_SELECT_MOVEMENT, language));
+            }
         case 'u':
             bspace_undo_movement();
             break;
@@ -352,10 +353,14 @@ void get_movement_interactively(
         case 'a':
             if (!bspace.chose_src) {
                 --mov_opt_index;
-                if (mov_opt_index < 0)  mov_opt_index = mov_opts->length-1;
+                if (mov_opt_index < 0) {
+                    mov_opt_index = mov_opts->length-1;
+                }
             } else {
                 --dest_opt_index;
-                if (dest_opt_index < 0)  dest_opt_index = dest_opts->length-1;
+                if (dest_opt_index < 0) {
+                    dest_opt_index = dest_opts->length-1;
+                }
             }
             break;
         }
