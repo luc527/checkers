@@ -303,11 +303,10 @@ void get_movement_interactively(
 	 * index of those pieces in the player options array.  After choosing which
 	 * piece to move, the player cycles through its possible destinations.
 	 * During this process, dest_opt_index stores the index of those positions
-	 * in the dest_opts->array.  Along the whole interaction, 'cursor' is set
-	 * to the option currently selected in the cycle (be it the mov_opts or
-	 * dest_opts cycle).  */
+	 * in the dest_opts->array. */
     int mov_opt_index = 0;
-    Position cursor = mov_opts->array[mov_opt_index].src;
+    // cursor: Position of the option currently selected in the cycle
+    Position cursor = mov_opts->array[mov_opt_index].src;  
     bspace.playery = cursor.row;
     bspace.playerx = cursor.col;
 
