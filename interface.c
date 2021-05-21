@@ -354,12 +354,12 @@ void get_movement_interactively(
             if (!bspace.chose_src) {
                 --mov_opt_index;
                 if (mov_opt_index < 0) {
-                    mov_opt_index = mov_opts->length-1;
+                    mov_opt_index = mov_opts->length - 1;
                 }
             } else {
                 --dest_opt_index;
                 if (dest_opt_index < 0) {
-                    dest_opt_index = dest_opts->length-1;
+                    dest_opt_index = dest_opts->length - 1;
                 }
             }
             break;
