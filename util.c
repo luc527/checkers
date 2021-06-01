@@ -52,4 +52,3 @@ bool same_color(Piece piece1, Piece piece2)
 bool piece_matches_player(Piece piece, Color player)
 { return (is_white(piece) && player == WHITE)
       || (is_black(piece) && player == BLACK); }
-

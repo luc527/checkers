@@ -1,5 +1,20 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "checkers.h"
+
+
+Game_state* allocate_copy(Game_state* state)
+{
+    size_t size = sizeof(*state);
+    Game_state* copy = malloc(size);
+    if (copy == NULL) {
+        printf("malloc failed at allocate_copy.\n");
+        exit(EXIT_FAILURE);
+    }
+    memcpy(copy, state, size);
+    return copy;
+}
+
 
 Piece get_piece(Game_state *state, Position pos)
 {
@@ -92,8 +107,7 @@ void upgrade_stones_to_dames(Game_state *state)
             set_piece(state, bottom, BLACK_DAME);
     }
 }
-
-
+ 
 void perform_movement(Game_state *state, Position src, Position dest)
 {
     // Move the piece
@@ -104,7 +118,7 @@ void perform_movement(Game_state *state, Position src, Position dest)
     int distance = abs(dest.row - src.row);
     int vstep = (dest.row > src.row) ? 1 : -1;  // Vertical step
     int hstep = (dest.col > src.col) ? 1 : -1;  // Horizontal step
-
+ 
     // ... by making the squares between src and dest empty
     Position captured = { src.row + vstep, src.col + hstep };
     for (int i = 1; i < distance; i++)
@@ -115,4 +129,81 @@ void perform_movement(Game_state *state, Position src, Position dest)
     }
 }
 
+void game_update(Game_state* state, Position src, Position dest) {
+    perform_movement(state, src, dest);
+    upgrade_stones_to_dames(state);
 
+
+    // Note that here switch_player is oblivious to the fact that a player
+    // may play again when he has performed a capture.
+    //
+    // So I think this updating logic, even the part that deals with movement
+    // options, should be moved here.
+    //
+    // TODO That is, this function here (which sould just be called update now that I think of it)
+    // should check whether the player may be play again and will switch_player only when
+    // that doesn't happen.
+    //
+    // Then the 'outside' does not need to care anymore about this logic,
+    // since it'll always just check which is the state->current_player.
+
+    switch_player(state);
+    update_situation(state);
+}
+
+// used when printing the board
+char background[8][9] = {
+    "_ _ _ _ ",
+    " _ _ _ _",
+    "_ _ _ _ ",
+    " _ _ _ _",
+    "_ _ _ _ ",
+    " _ _ _ _",
+    "_ _ _ _ ",
+    " _ _ _ _",
+};
+
+// used to convert pieces into characters when printing the board
+char piece_to_char[] = {
+    [EMPTY]       = ' ',
+    [WHITE_STONE] = 'o',
+    [BLACK_STONE] = '*',
+    [WHITE_DAME]  = '@',
+    [BLACK_DAME]  = 'X'
+
+};
+
+
+void game_print(Game_state *state)
+{
+    // Column index on top
+    printf("  ");
+    for (int col = 0; col < 8; col++)
+        printf("%c ", 'A' + col);
+    printf("\n");
+
+    for (int row = 7; row >= 0; row--)
+    {
+        // Row index on left
+        printf("%d ", row + 1);
+        for (int col = 0; col < 8; col++)
+        {
+            Position pos = { row, col };
+            char piece_icon = piece_to_char[get_piece(state, pos)];
+            if (piece_icon == ' ') printf("%c ", background[row][col]);
+            else                   printf("%c ", piece_icon);
+        }
+        // Row index on right
+        printf("%d\n", row + 1);
+    }
+
+    // Column index on bottom
+    printf("  ");
+    for (int col = 0; col < 8; col++)
+        printf("%c ", 'A' + col);
+    printf("\n");
+
+    printf("Current player: ");
+    if (state->current_player == WHITE) printf("white (o@)\n");
+    else                                printf("black (*X)\n");
+}

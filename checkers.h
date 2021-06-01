@@ -74,6 +74,8 @@ typedef struct {
     Situation situation;
 } Game_state;
 
+Game_state* allocate_copy(Game_state*);
+
 Piece get_piece (Game_state *, Position);
 void  set_piece (Game_state *, Position, Piece);
 
@@ -83,6 +85,8 @@ void upgrade_stones_to_dames (Game_state *);
 void perform_movement        (Game_state *, Position src, Position dest);
 void game_print              (Game_state *);
 void update_situation        (Game_state *);
+
+void game_update(Game_state* state, Position src, Position dest);
 /// }}}
 
 // movement.c {{{
@@ -92,7 +96,7 @@ Movtype get_movtype (Game_state *, Position from, Position to);
 
 #define MAXOPTIONS 13
 /* MAXOPTIONS is the upper bound to how many movement options any piece has.
-/* A /stone/ will have at most four options of movement (captures in all four
+ * A /stone/ will have at most four options of movement (captures in all four
  * directions), or two if it can't capture, but a /dame/ can potentially move to
  * every square in its four diagonals, the amount of which seems to be 13 in total
  * (count the X's below).
@@ -154,6 +158,10 @@ void get_movement_interactively(
         Position *src,
         Position *dest
 );
+// }}}
+
+// AI {{{
+void game_tree(Game_state*, int depth, int maxdepth);
 // }}}
 
 #endif
