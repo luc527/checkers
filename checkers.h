@@ -75,6 +75,7 @@ typedef struct {
 } Game_state;
 
 Game_state* allocate_copy(Game_state*);
+void free_copy(Game_state *);
 
 Piece get_piece (Game_state *, Position);
 void  set_piece (Game_state *, Position, Piece);

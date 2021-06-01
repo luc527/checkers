@@ -15,6 +15,10 @@ Game_state* allocate_copy(Game_state* state)
     return copy;
 }
 
+void free_copy(Game_state *copy) {
+    if (copy != NULL) free(copy);
+}
+
 
 Piece get_piece(Game_state *state, Position pos)
 {

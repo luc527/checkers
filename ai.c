@@ -29,10 +29,9 @@ void game_tree(Game_state* state0, int depth, int maxdepth) {
             printf(".\n");
 
             Game_state* state = allocate_copy(state0);
-
             game_update(state, dops->src, dops->array[j]);
-
             game_tree(state, depth+1, maxdepth);
+            free_copy(state);
         }
     }
 }
