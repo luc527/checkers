@@ -1,37 +1,47 @@
 #include "checkers.h"
 
-void printpos(Position *p) {
+
+void printpos(Position *p)
+{
     printf("%c%c ", p->col+'A', p->row+'1');
 }
 
-void game_tree(Game_state* state0, int depth, int maxdepth) {
 
-    game_print(state0);
-    printf("Depth: %d\n", depth);
-    putchar('\n');
+int evaluate(Game_state* state, Color player)
+{
+    static int stone_value = 10;
+    static int dame_value = 25;
+    static int distance_bonus = 1;
+    static int white_origin = 0;
+    static int black_origin = 7;
 
-    if (depth >= maxdepth) {
-        return;
-    }
+    int state_value = 0;
 
-    Mov_options mops;
-    generate_mov_options(state0, &mops);
+    Position pos;
+    for (int pos.row = 0; pos.row < 8; pos.row++)
+    {
+        for (int pos.col = 0; pos.col < 8; pos.col++)
+        {
+            Piece piece = get_piece(state, pos);
 
-    for (int i = 0; i < mops.length; i++) {
-        Dest_options* dops = &mops.array[i];
-        for (int j = 0; j < dops->length; j++) {
+            if (!is_empty(piece))
+            {
+                int piece_value;
+                if (is_stone(piece))  piece_value = stone_value;
+                else                  piece_value = dame_value;
 
+                int dist;  // distance from origin
+                if (is_white(piece))  dist = p.row - white_origin;
+                else                  dist = black_origin - p.row;
 
-            printf("From ");
-            printpos(&dops->src);
-            printf(" to ");
-            printpos(&dops->array[j]);
-            printf(".\n");
+                piece_value += dist * distance_bonus;
 
-            Game_state* state = allocate_copy(state0);
-            game_update(state, dops->src, dops->array[j]);
-            game_tree(state, depth+1, maxdepth);
-            free_copy(state);
+                if (!piece_matches_player(piece, player))  piece_value *= -1;
+
+                state_value += piece_value;
+            }
         }
     }
+
+    return state_value;
 }
