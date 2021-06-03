@@ -4,26 +4,15 @@
 #include "checkers.h"
 
 
-int abs(int x)
-{
+int abs(int x) {
     return x < 0 ? -x : x;
 }
 
-
-int clamp(int x, int min, int max)
-{
-	if      (x < min)  return min;
-	else if (x > max)  return max;
-	else               return x;
-}
-
-void print_indentation(int i)
-{
+void print_indentation(int i) {
     while (i-- > 0) putchar(' ');
 }
 
-char* write_position(Position *p, char* buf)
-{
+char* write_position(Position *p, char* buf) {
     sprintf(buf, "%c%c", p->col+'A', p->row+'1');
     return buf;
 }

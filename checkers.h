@@ -52,7 +52,6 @@ typedef struct {
 // util.c {{{
 char* write_position (Position*, char*);
 int abs(int);
-int clamp(int, int min, int max);
 void print_indentation(int);
 
 bool is_valid_position    (Position);
