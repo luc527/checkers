@@ -175,14 +175,14 @@ void game_print(Game_state *state, int indent)
     // Column index on top
     printf("  ");
     for (int col = 0; col < 8; col++)
-        printf("%c ", 'A' + col);
+        printf("%d ", col);
     printf("\n");
 
-    for (int row = 7; row >= 0; row--)
+    for (int row = 0; row < 8; row++)
     {
         print_indentation(indent);
         // Row index on left
-        printf("%d ", row + 1);
+        printf("%d ", row);
         for (int col = 0; col < 8; col++)
         {
             Position pos = { row, col };
@@ -191,14 +191,14 @@ void game_print(Game_state *state, int indent)
             else                   printf("%c ", piece_icon);
         }
         // Row index on right
-        printf("%d\n", row + 1);
+        printf("%d\n", row);
     }
 
     print_indentation(indent);
     // Column index on bottom
     printf("  ");
     for (int col = 0; col < 8; col++)
-        printf("%c ", 'A' + col);
+        printf("%d ", col);
     printf("\n");
 
     print_indentation(indent);

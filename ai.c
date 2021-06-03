@@ -18,6 +18,7 @@ double minimax(Game_state* state, int depth, Color maximizing_player, Position* 
     Mov_options mov_options;
     generate_mov_options(state, &mov_options);
 
+#if 0
     if (mov_options.length == 0) {
         printf("No movement options available.\n");
         exit(EXIT_FAILURE);
@@ -28,51 +29,54 @@ double minimax(Game_state* state, int depth, Color maximizing_player, Position* 
                 exit(EXIT_FAILURE);
             }
     }
+#endif
 
     double sub_values[NUMPIECES][MAXOPTIONS];
-    Position sub_srcs[NUMPIECES][MAXOPTIONS];
-    Position sub_dests[NUMPIECES][MAXOPTIONS];
 
     Game_state sub_state;
-    Position sub_src, sub_dest;
     for (int i = 0; i < mov_options.length; i++) {
         for (int j = 0; j < mov_options.array[i].length; j++) {
             game_copy(&sub_state, state);
             game_update(&sub_state, mov_options.array[i].src, mov_options.array[i].array[j]);
-            if (depth > 0) {
-                sub_values[i][j] = minimax(&sub_state, depth - 1, maximizing_player, &sub_src, &sub_dest);
-                sub_srcs[i][j]   = sub_src;
-                sub_dests[i][j]  = sub_dest;
-            } else {
+
+            if (depth > 0)
+                sub_values[i][j] = minimax(&sub_state, depth - 1, maximizing_player, src, dest);
+            else
                 sub_values[i][j] = evaluate(&sub_state, maximizing_player);
-                sub_srcs[i][j]   = mov_options.array[i].src;
-                sub_dests[i][j]  = mov_options.array[i].array[j];
-            }
         }
     }
 
     double value = sub_values[0][0];
-    *src = sub_srcs[0][0];
-    *dest = sub_dests[0][0];
+    *src = mov_options.array[0].src;
+    *dest = mov_options.array[0].array[0];
     for (int i = 0; i < mov_options.length; i++) {
         for (int j = 0; j < mov_options.array[i].length; j++) {
+            Position* sub_src = &mov_options.array[i].src;
+            Position* sub_dest = &mov_options.array[i].array[j];
+
+            print_indentation(depth * 4 + 2);
+            printf("(%d,%d) -> (%d,%d) (%g %s-ing)\n", 
+                    sub_src->col, sub_src->row, sub_dest->col, sub_dest->row,
+                    sub_values[i][j], maximize ? "MAX" : "MIN");
+            while (getchar() != '\n') continue;
+
             bool replace = ( maximize && sub_values[i][j] > value)
                         || (!maximize && sub_values[i][j] < value);
             if (replace) {
                 value = sub_values[i][j];
-                *src = sub_srcs[i][j];
-                *dest = sub_dests[i][j];
+                *src = mov_options.array[i].src;
+                *dest = mov_options.array[i].array[j];
             }
         }
     }
 
     print_indentation(depth * 4);
-    char src_str[3], dest_str[3];
-    printf("%s -> %s (%g %s)\n",
-            write_position(src, src_str), write_position(dest, dest_str),
+    printf("Best: (%d,%d) -> (%d,%d) (%g %s)\n",
+            src->col, src->row, dest->col, dest->row,
             value, maximize ? "MAX-ing" : "MIN-ing");
     // game_print(state, depth * 4);
-    // putchar('\n');
+    putchar('\n');
+    putchar('\n');
 
     return value;
 }

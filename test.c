@@ -9,7 +9,9 @@ int main()
     // printf("%g\n", evaluate(&state, BLACK));
 
     Position src, dest;
-    minimax(&state, 4, WHITE, &src, &dest);
+    minimax(&state, 2, WHITE, &src, &dest);
+
+    printf("(%d,%d) -> (%d,%d)\n", src.col, src.row, dest.col, dest.row);
 
     return 0;
 }
