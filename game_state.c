@@ -3,20 +3,9 @@
 #include "checkers.h"
 
 
-Game_state* allocate_copy(Game_state* state)
+void game_copy(Game_state* to, Game_state* from)
 {
-    size_t size = sizeof(*state);
-    Game_state* copy = malloc(size);
-    if (copy == NULL) {
-        printf("malloc failed at allocate_copy.\n");
-        exit(EXIT_FAILURE);
-    }
-    memcpy(copy, state, size);
-    return copy;
-}
-
-void free_copy(Game_state *copy) {
-    if (copy != NULL) free(copy);
+    memcpy(to, from, sizeof(*from));
 }
 
 
@@ -178,8 +167,11 @@ char piece_to_char[] = {
 };
 
 
-void game_print(Game_state *state)
+
+
+void game_print(Game_state *state, int indent)
 {
+    print_indentation(indent);
     // Column index on top
     printf("  ");
     for (int col = 0; col < 8; col++)
@@ -188,6 +180,7 @@ void game_print(Game_state *state)
 
     for (int row = 7; row >= 0; row--)
     {
+        print_indentation(indent);
         // Row index on left
         printf("%d ", row + 1);
         for (int col = 0; col < 8; col++)
@@ -201,12 +194,14 @@ void game_print(Game_state *state)
         printf("%d\n", row + 1);
     }
 
+    print_indentation(indent);
     // Column index on bottom
     printf("  ");
     for (int col = 0; col < 8; col++)
         printf("%c ", 'A' + col);
     printf("\n");
 
+    print_indentation(indent);
     printf("Current player: ");
     if (state->current_player == WHITE) printf("white (o@)\n");
     else                                printf("black (*X)\n");

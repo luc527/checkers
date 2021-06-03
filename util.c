@@ -17,6 +17,17 @@ int clamp(int x, int min, int max)
 	else               return x;
 }
 
+void print_indentation(int i)
+{
+    while (i-- > 0) putchar(' ');
+}
+
+char* write_position(Position *p, char* buf)
+{
+    sprintf(buf, "%c%c", p->col+'A', p->row+'1');
+    return buf;
+}
+
 //
 // Predicates
 //

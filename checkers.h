@@ -50,8 +50,10 @@ typedef struct {
 // }}}
 
 // util.c {{{
-bool read_position  (Position *);
-void print_position (char *, Position);
+char* write_position (Position*, char*);
+int abs(int);
+int clamp(int, int min, int max);
+void print_indentation(int);
 
 bool is_valid_position    (Position);
 bool is_diagonal          (Position, Position);
@@ -63,8 +65,6 @@ bool is_empty             (Piece);
 bool same_color           (Piece, Piece);
 bool piece_matches_player (Piece, Color);
 
-int abs(int);
-int clamp(int, int min, int max);
 // }}}
 
 // game_state.c {{{
@@ -74,9 +74,6 @@ typedef struct {
     Situation situation;
 } Game_state;
 
-Game_state* allocate_copy(Game_state*);
-void free_copy(Game_state *);
-
 Piece get_piece (Game_state *, Position);
 void  set_piece (Game_state *, Position, Piece);
 
@@ -84,10 +81,8 @@ void game_setup              (Game_state *);
 void switch_player           (Game_state *);
 void upgrade_stones_to_dames (Game_state *);
 void perform_movement        (Game_state *, Position src, Position dest);
-void game_print              (Game_state *);
+void game_print              (Game_state *, int indent);  // Just used for debugging nowadays
 void update_situation        (Game_state *);
-
-void game_update(Game_state* state, Position src, Position dest);
 /// }}}
 
 // movement.c {{{
@@ -97,7 +92,7 @@ Movtype get_movtype (Game_state *, Position from, Position to);
 
 #define MAXOPTIONS 13
 /* MAXOPTIONS is the upper bound to how many movement options any piece has.
- * A /stone/ will have at most four options of movement (captures in all four
+/* A /stone/ will have at most four options of movement (captures in all four
  * directions), or two if it can't capture, but a /dame/ can potentially move to
  * every square in its four diagonals, the amount of which seems to be 13 in total
  * (count the X's below).
@@ -161,9 +156,9 @@ void get_movement_interactively(
 );
 // }}}
 
-// AI {{{
-void game_tree(Game_state*, int depth, int maxdepth);
-// }}}
+
+double minimax(Game_state* state, int depth, Color maximizing_player, Position* src, Position *dest);
+double evaluate(Game_state* state, Color maximizing_player);
 
 #endif
 

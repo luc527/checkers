@@ -5,7 +5,11 @@ int main()
     Game_state state;
     game_setup(&state);
 
-    game_tree(&state, 0, 2);
+    // printf("%g\n", evaluate(&state, WHITE));
+    // printf("%g\n", evaluate(&state, BLACK));
+
+    Position src, dest;
+    minimax(&state, 4, WHITE, &src, &dest);
 
     return 0;
 }
